@@ -19,43 +19,57 @@ void program::clear(){
     lineSum=0;
 }
 
-void program::insert(QString newLine){
-    statement *newline= new statement(newLine,nullptr);
-    if(head->next==nullptr){
-       if(newline->parts.length()!=1)
-            {head->next=newline;lineSum++;}
+
+
+//判断插入还是执行操作
+state_t program::handleNew(statement *newline){
+
+    if(newline->kind==CmdStmt){
+        return CmdStmt;
     }
-    else {
-        statement *p = head;
-        statement *q;
-        while(p->next!=nullptr&&p->next->lineNum <= newline->lineNum){
-            q=p;
-            p=p->next;
+    //插入或删除节点
+    else{
+        if(!newline->isfistNum&&newline->kind!=DelStmt){
+             return newline->kind;
         }
-
-        //替换一行，p为要替代的一行
-        if(p->lineNum==newline->lineNum){
-            if(newline->parts.length()==1){
-                   q->next=p->next;
-                   delete p;
-                   lineSum--;
-            }
-            else {
-                p->code=newline->code;
+        if(head->next==nullptr){
+           if(newline->parts.length()!=1)
+                {head->next=newline;lineSum++;}
+        }
+        else {
+            statement *p = head;
+            statement *q;
+            while(p->next!=nullptr&&p->next->lineNum <= newline->lineNum){
+                q=p;
+                p=p->next;
             }
 
-        }
-        //增加一行，增加在p之后
-        else{
-            if(newline->parts.length()!=1){
-                newline->next=p->next;
-                p->next=newline;
-                lineSum++;
+            //删除一行，p为要删除的一行
+            if(p->lineNum==newline->lineNum){
+                if(newline->parts.length()==1){
+                       q->next=p->next;
+                       delete p;
+                       lineSum--;
+                }
+                else {
+                    p->code=newline->code;
+                }
+
+            }
+            //增加一行，增加在p之后
+            else{
+                if(newline->parts.length()!=1){
+                    newline->next=p->next;
+                    p->next=newline;
+                    lineSum++;
+
+                }
 
             }
 
         }
 
     }
+    return newline->kind;
 
 }

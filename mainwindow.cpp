@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     this->setSizePolicy(sizePolicy);
     prolist= new program;
+    vals = new evalstate;
     cur_linenum=0;
     ui->lineEdit->setAttribute(Qt::WA_InputMethodEnabled, false);
     ui->lineEdit->setFocus();
@@ -46,7 +47,8 @@ void MainWindow::load(QTextStream &in){
     while (!in.atEnd()) {
 
         str=in.readLine();
-         prolist->insert(str);
+        statement *newline= new statement(str,nullptr);
+         prolist->handleNew(newline);
     }
     set_result();
 }
@@ -54,9 +56,28 @@ void MainWindow::load(QTextStream &in){
 
 void MainWindow::on_lineEdit_returnPressed()
 {
+    QString str=ui->lineEdit->text();
+     str=str.trimmed();
+     if(str.length()==0) {
+         ui->lineEdit->clear();
+         return;
+     }
+     statement *newline= new statement(str,nullptr);
 
-     QString str=ui->lineEdit->text();
-     prolist->insert(str);
+     if(prolist->handleNew(newline)==CmdStmt){
+
+        if(newline->parts[0]=="RUN")
+            {}//run_code();
+        else if(newline->parts[0]=="HELP")
+        {show_help();}//
+        else if(newline->parts[0]=="CLEAR")
+            {}
+        else if(newline->parts[0]=="QUIT")
+            this->close();
+     }
+      else {
+
+     }
      cur_linenum++;
 
       ui->lineEdit->clear();
@@ -73,4 +94,11 @@ void MainWindow::on_pushButton_3_clicked()
     QTextStream in(&file);
     load(in);
     file.close();
+}
+
+void MainWindow::show_help(){
+    QMessageBox tip(this);
+    tip.setText("参考文档");
+    tip.setWindowTitle("help");
+    tip.exec();
 }

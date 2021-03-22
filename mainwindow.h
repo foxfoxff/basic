@@ -6,7 +6,9 @@
 #include<QTextStream>
 #include<string>
 #include"program.h"
+#include"evalstate.h"
 #include<QDebug>
+#include<QMessageBox>
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -19,6 +21,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void set_result();
     void load(QTextStream &in);
+    void run_code();
+    void show_help();
 
     ~MainWindow();
 private:
@@ -26,7 +30,7 @@ private:
     Ui::MainWindow *ui;
      program *prolist;
     int cur_linenum;
-
+     evalstate *vals;
 private slots:
 
 
