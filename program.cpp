@@ -34,7 +34,15 @@ state_t program::handleNew(statement *newline){
         }
         if(head->next==nullptr){
            if(newline->parts.length()!=1)
-                {head->next=newline;lineSum++;}
+                {head->next=newline;
+               lineSum++;
+               if(newline->kind==LetStmt&&newline->lineNum>0){
+
+                   // exp_node*new_exp=new exp_node(newline->parts[2])
+                    //exp_map.insert(newline->lineNum,)
+               }
+
+           }
         }
         else {
             statement *p = head;
@@ -46,7 +54,7 @@ state_t program::handleNew(statement *newline){
 
             //删除一行，p为要删除的一行
             if(p->lineNum==newline->lineNum){
-                if(newline->parts.length()==1){
+                if(newline->kind==DelStmt){
                        q->next=p->next;
                        delete p;
                        lineSum--;

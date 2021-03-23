@@ -5,17 +5,20 @@
 #include"tokenizer.h"
 #include<QStack>
 
-enum exp_t{CONSTANT,OPRAND,VARIANT};
+enum exp_t{CONSTANT,OPRAND,VARIANT,DEFINE};
 
 struct exp_node{
     exp_t kind;
     QString value;
     exp_node *left;
     exp_node *right;
+    exp_node *oprand;//only for IF
+    exp_node *then;//only for IF
     exp_node(QString val,exp_node* l=nullptr,exp_node*r=nullptr){
         value=val;
         left=l;
         right=r;
+
     }
 };
 
@@ -28,10 +31,11 @@ public:
     exp();
     exp(QString str);
     int isop(QString);
-
+    QList<QString>get_token(QString str);
     QList<QString> tokenizer(QString str){
     QList<QString> list;
     str=str.trimmed();
+
     int len=str.length();
     QString last;
     int cur_num=0;
@@ -39,7 +43,7 @@ public:
     for(int i=0;i<len;++i){
     if(i<len-1){
         if(str[i]=='+' || str[i]=='-'||str[i]=='/'||
-                str[i]=='('||str[i]==')'||str[i]=='='){
+                str[i]=='('||str[i]==')'||str[i]=='='||str[i]=='<'||str[i]=='>'){
             cur_num=i-1;
             if(cur_start<=cur_num){
                 QString tmp=str.mid(cur_start,cur_num-cur_start+1);
@@ -76,13 +80,15 @@ public:
         }
     }
       if(i==len-1) {
-          QString tmp=str[i]+"";
+          QString tmp=str.mid(cur_start);
           list.push_back(tmp);
       }
 
     }
     return list;
     }
+    exp_node* get_exp(QList<QString>);
+
 private:
     exp_node *root;
 

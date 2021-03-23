@@ -2,6 +2,7 @@
 #define PROGRAM_H
 #include"statement.h"
 #include "exp.h"
+#include<QMap>
 enum Command{HELP,RUN,LET,LIST,CLEAR,QUIT};
 class program
 {
@@ -18,11 +19,11 @@ public:
 private:
     //语句总数
     int lineSum;
-
     //存储程序的链表
     statement *head;
     //存储表达式树的链表
-    exp* e_head;
+    QMap<int,exp_node*> exp_map;
+
 
 
 
