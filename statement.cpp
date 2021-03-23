@@ -32,7 +32,7 @@ void statement::choose_kind(QString part_k){
 statement::statement(QString value,statement*n){
     value=value.trimmed();
    parts = value.split(' ',QString::SkipEmptyParts);
-   qDebug()<<parts[0];
+   //qDebug()<<parts[0];
 
    parts[0].toInt(&isfistNum);
    code=value;

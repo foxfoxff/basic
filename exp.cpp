@@ -1,5 +1,5 @@
 #include "exp.h"
-
+#include<QDebug>
 exp::exp()
 {
 
@@ -20,14 +20,17 @@ int exp::isop(QString str){
         return -1;
     else return 0;
 }
+
+
 QList<QString> exp::get_token(QString str){
     QList<QString> tokenlist;
     QString tmp_str;
     str=str.trimmed();
     QList<QString> parts = str.split(' ',QString::SkipEmptyParts);
     int k=parts.size();
-    for(int i=1;i<k;++i){
+    for(int i=0;i<k;++i){
         QList<QString> tmp=tokenizer(parts[i]);
+
         while(!tmp.isEmpty()){
             tmp_str=tmp.front();
             tmp.pop_front();
@@ -35,11 +38,12 @@ QList<QString> exp::get_token(QString str){
         }
 
     }
-    tokenlist.pop_front();
+   // tokenlist.pop_front();
+    qDebug()<<"tokenlist:"<<tokenlist;
     return tokenlist;
 }
 exp_node* exp::get_exp(QList<QString>oplist){
-    oplist.pop_front();//弹出语句类型
+
     QStack<QString> stack;//操作符栈
     QList<QString> postlist;
     QStack<exp_node* > numstack;//操作数栈
@@ -49,9 +53,11 @@ exp_node* exp::get_exp(QList<QString>oplist){
 
         tmp=oplist.front();//从表达式中取符号
 
+        //qDebug()<<tmp;
+
         oplist.pop_front();
         int op_kind=isop(tmp);
-
+        //qDebug()<<op_kind;
         //如果取出的是计算量
         if(op_kind==0){
             exp_node *newnode= new exp_node(tmp);
@@ -72,6 +78,7 @@ exp_node* exp::get_exp(QList<QString>oplist){
         else if(op_kind==-1||(op_kind>=1&&op_kind<=3)){
             if(stack.isEmpty()){
                 stack.push_back(tmp);
+                qDebug()<<tmp<<"进入stack";
             }
             else{
                 QString top=stack.back();//取op栈的栈顶
@@ -83,6 +90,7 @@ exp_node* exp::get_exp(QList<QString>oplist){
                     exp_node* l_node=numstack.back();
                     numstack.pop();
                     exp_node* newnode = new exp_node(top,l_node,r_node);
+                    newnode->kind=OPRAND;
                     numstack.push(newnode);
                     postlist.push_back(top);
                     top=stack.back();//重新设置栈顶
@@ -105,25 +113,45 @@ exp_node* exp::get_exp(QList<QString>oplist){
                 exp_node* l_node=numstack.back();
                 numstack.pop();
                 exp_node* newnode = new exp_node(top,l_node,r_node);
+                newnode->kind=OPRAND;
                 numstack.push(newnode);//放回操作数栈
                 postlist.push_back(top);
                 top=stack.back();
             }
-                stack.pop();
+                stack.pop();//弹出左括号
         }
     }
-   exp_node *tmp_node=numstack.back();
+    while(!stack.isEmpty()){
+            tmp=stack.back();
+            stack.pop();
+            exp_node* r_node=numstack.back();
+            numstack.pop();
+            exp_node* l_node=numstack.back();
+            numstack.pop();
+            exp_node* newnode = new exp_node(tmp,l_node,r_node);
+            newnode->kind=OPRAND;
+            numstack.push(newnode);
+
+    }
+    exp_node *tmp_node=numstack.back();
    numstack.pop();
    if(numstack.isEmpty()){
        tmp_node->kind=OPRAND;
+       qDebug()<<"成功创建exp_tree";
        return tmp_node;
    }
    return nullptr;//可根据这里报错
 }
+//输入一个除了行号外的string
 exp::exp(QString str){
+
     QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
     if(oplist.front()=="LET"||oplist.front()=="PRINT"){
+       // qDebug()<<"YES";
+      // qDebug()<<"oplist"<<oplist;
+       oplist.pop_front();//弹出语句类型
        root=get_exp(oplist);
+       //qDebug()<<root->value;
     }
     else if(oplist.front()=="GOTO"){
         oplist.pop_front();
@@ -138,13 +166,38 @@ exp::exp(QString str){
     }
     else if (oplist.front()=="IF") {
         oplist.pop_front();
-        QList<QString>
+        QList<QString> exp1,exp2;
+        exp_node *left,*right;
+        exp_node *oprand,*then;
+        QString tmp;
         while(!oplist.isEmpty()&&oplist.front()!="<"&&oplist.front()!=">"&&oplist.front()!="="){
-         exp_node* left=
-
-
-
+            tmp=oplist.front();
+            oplist.pop_front();
+            exp1.push_back(tmp);
         }
+            left=get_exp(exp1);
+        //截取比较的符号是什么
+        if(!oplist.isEmpty()){
+            oprand=new exp_node(oplist.front());
+            oprand->kind=OPRAND;
+            oplist.pop_front();
+        }
+        while(!oplist.isEmpty()&&oplist.front()!="THEN"){
+            tmp=oplist.front();
+            oplist.pop_front();
+            exp2.push_back(tmp);
+        }
+            right=get_exp(exp2);
+        if(oplist.front()=="THEN"){
+            oplist.pop_front();
+        }
+        tmp=oplist.front();
+        then = new exp_node(tmp);
+        then->kind=CONSTANT;
+        root=new exp_node("IF THEN",left,right);
+        root->kind=DEFINE;
+        root->oprand=oprand;
+        root->then=then;
     }
 
 

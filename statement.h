@@ -11,7 +11,7 @@ class statement
     friend class MainWindow;
     friend class parser;
 private:
-    QString code;
+    QString code;//原始代码
     statement *next;
     int lineNum;//行号
     state_t kind;

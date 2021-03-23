@@ -22,7 +22,7 @@ private:
     //存储程序的链表
     statement *head;
     //存储表达式树的链表
-    QMap<int,exp_node*> exp_map;
+    QMap<int,exp*> exp_map;
 
 
 

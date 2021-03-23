@@ -6,7 +6,6 @@
 #include<QStack>
 
 enum exp_t{CONSTANT,OPRAND,VARIANT,DEFINE};
-
 struct exp_node{
     exp_t kind;
     QString value;
@@ -31,8 +30,8 @@ public:
     exp();
     exp(QString str);
     int isop(QString);
-    QList<QString>get_token(QString str);
-    QList<QString> tokenizer(QString str){
+    static QList<QString>get_token(QString str);
+    static QList<QString> tokenizer(QString str){
     QList<QString> list;
     str=str.trimmed();
 
@@ -41,7 +40,7 @@ public:
     int cur_num=0;
     int cur_start=0;
     for(int i=0;i<len;++i){
-    if(i<len-1){
+
         if(str[i]=='+' || str[i]=='-'||str[i]=='/'||
                 str[i]=='('||str[i]==')'||str[i]=='='||str[i]=='<'||str[i]=='>'){
             cur_num=i-1;
@@ -54,6 +53,7 @@ public:
             QString tmp=str[i]+"";
             list.push_back(tmp);
             cur_start=i+1;
+            continue;
         }
         if(str[i]=='*'&&str[i+1]!='*'){
             cur_num=i-1;
@@ -65,6 +65,7 @@ public:
             QString tmp=str[i]+"";
             list.push_back(tmp);
             cur_start=i+1;
+             continue;
         }
         if(str[i]=='*'&&str[i+1]=='*'){
             cur_num=i-1;
@@ -77,8 +78,9 @@ public:
             list.push_back(tmp);
             cur_start=i+2;
             i++;
+             continue;
         }
-    }
+
       if(i==len-1) {
           QString tmp=str.mid(cur_start);
           list.push_back(tmp);

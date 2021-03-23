@@ -27,21 +27,29 @@ state_t program::handleNew(statement *newline){
     if(newline->kind==CmdStmt){
         return CmdStmt;
     }
-    //插入或删除节点
+
     else{
+        //三种特殊情况 无须存储
         if(!newline->isfistNum&&newline->kind!=DelStmt){
              return newline->kind;
         }
+         //插入或删除节点
         if(head->next==nullptr){
-           if(newline->parts.length()!=1)
-                {head->next=newline;
-               lineSum++;
-               if(newline->kind==LetStmt&&newline->lineNum>0){
-
-                   // exp_node*new_exp=new exp_node(newline->parts[2])
-                    //exp_map.insert(newline->lineNum,)
-               }
-
+           if(newline->parts.length()!=1&&newline->isfistNum)
+                {
+                head->next=newline;
+                lineSum++;
+                QString noNum="";
+                for(int i=1;i<newline->parts.length();++i){
+                    noNum+=newline->parts[i].trimmed()+" ";
+                }//提取除行号外的其他字符
+                noNum=noNum.trimmed();
+                //调试点2
+               // qDebug()<<noNum;
+                 exp* new_exp= new exp(noNum);
+                 //qDebug()<<new_exp->root->value;
+                 exp_map.insert(newline->lineNum,new_exp);
+                 //qDebug()<<exp_map[newline->lineNum]->root->value;
            }
         }
         else {
@@ -58,11 +66,11 @@ state_t program::handleNew(statement *newline){
                        q->next=p->next;
                        delete p;
                        lineSum--;
+                       exp_map.remove(newline->lineNum);
                 }
                 else {
                     p->code=newline->code;
                 }
-
             }
             //增加一行，增加在p之后
             else{
@@ -70,9 +78,13 @@ state_t program::handleNew(statement *newline){
                     newline->next=p->next;
                     p->next=newline;
                     lineSum++;
-
+                    QString noNum="";
+                    for(int i=1;i<newline->parts.length();++i){
+                        noNum+=newline->parts[i].trimmed()+" ";
+                    }//提取除行号外的其他字符
+                     exp* new_exp= new exp(noNum);
+                     exp_map.insert(newline->lineNum,new_exp);
                 }
-
             }
 
         }

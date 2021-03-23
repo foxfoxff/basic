@@ -6,6 +6,7 @@
 #include<QTextStream>
 #include<string>
 #include"program.h"
+
 #include"evalstate.h"
 #include<QDebug>
 #include<QMessageBox>
@@ -23,7 +24,8 @@ public:
     void load(QTextStream &in);
     void run_code();
     void show_help();
-
+    void set_syntree();
+    void add_var(QString name,int val);
     ~MainWindow();
 private:
 
