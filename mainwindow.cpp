@@ -71,6 +71,7 @@ void MainWindow::on_lineEdit_returnPressed()
      }
      statement *newline= new statement(str,nullptr);
 
+     //将新的语句加入链表，创建相应的exp_tree存入map中，并返回新语句的类型
      if(prolist->handleNew(newline)==CmdStmt){
 
         if(newline->parts[0]=="RUN")
@@ -84,30 +85,38 @@ void MainWindow::on_lineEdit_returnPressed()
      }
      //新写入的一行不是cmd
       else {
-         //三种特殊情况
-        if(!newline->isfistNum){
-            if(newline->kind==LetStmt){
-                QString noNum="";
-                for(int i=1;i<newline->parts.length();++i){
-                    noNum+=newline->parts[i].trimmed()+" ";
-                }//提取除LET外的其他字符
-                noNum=noNum.trimmed();
-               QList<QString>tmp_list=exp::get_token(noNum);
-               qDebug()<<tmp_list;
-               add_var(tmp_list[0],tmp_list[2].toInt());
-            }
-            if(newline->kind==PrintStmt){
-                QString noNum="";
-                for(int i=1;i<newline->parts.length();++i){
-                    noNum+=newline->parts[i].trimmed()+" ";
-                }//提取除行号外的其他字符
-                noNum=noNum.trimmed();
-               QList<QString>tmp_list=exp::get_token(noNum);
-                 ui->result->append(tmp_list[0]);
-            }
+
+
+
+                // 三种直接运行的特殊情况
+               if(!newline->isfistNum){
+                   //LET
+                    if(newline->kind==LetStmt){
+                   exp *tmp_exp = new exp(newline->code);
+                   int val=tmp_exp->calculate(vals->all);
+                   QList<QString> tokenlist= exp::get_token(newline->code);
+
+                   if(ifexist(tokenlist[1]))
+                       vals->all[tokenlist[1]]=val;
+                   else add_var(tokenlist[1],val);
+                    }
+                    //PRINT
+                    if(newline->kind==PrintStmt){
+                        qDebug()<<"success to enter the function";
+                        qDebug()<<vals->all["A"];
+                        exp *tmp_exp = new exp(newline->code);
+                        int val=tmp_exp->calculate(vals->all);
+
+
+
+                         ui->result->append(QString::number(val));
+                    }
+               }
+
+
         }
 
-     }
+
      cur_linenum++;
 
       ui->lineEdit->clear();
@@ -135,4 +144,8 @@ void MainWindow::show_help(){
 }
 void MainWindow:: add_var(QString name,int val){
     vals->add(name,val);
+}
+
+bool MainWindow:: ifexist(QString name){
+    return vals->exist(name);
 }

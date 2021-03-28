@@ -43,13 +43,10 @@ state_t program::handleNew(statement *newline){
                 for(int i=1;i<newline->parts.length();++i){
                     noNum+=newline->parts[i].trimmed()+" ";
                 }//提取除行号外的其他字符
-                noNum=noNum.trimmed();
-                //调试点2
-               // qDebug()<<noNum;
-                 exp* new_exp= new exp(noNum);
-                 //qDebug()<<new_exp->root->value;
+                noNum=noNum.trimmed();               
+                 exp* new_exp= new exp(noNum);                
                  exp_map.insert(newline->lineNum,new_exp);
-                 //qDebug()<<exp_map[newline->lineNum]->root->value;
+
            }
         }
         else {
@@ -69,7 +66,7 @@ state_t program::handleNew(statement *newline){
                        exp_map.remove(newline->lineNum);
                 }
                 else {
-                    p->code=newline->code;
+                    throw Error("语法错误");
                 }
             }
             //增加一行，增加在p之后

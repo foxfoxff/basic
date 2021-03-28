@@ -117,7 +117,7 @@ QList<QString> exp::get_token(QString str){
         tmp_str=tokenlist[i];
        tokens.push_back(tmp_str);
     }
-    qDebug()<<"tokens:"<<tokens;
+  //  qDebug()<<"提取出的tokens:"<<tokens;
     return tokens;
 }
 exp_node* exp::get_exp(QList<QString>oplist){
@@ -153,15 +153,17 @@ exp_node* exp::get_exp(QList<QString>oplist){
         else if(op_kind==-1||(op_kind>=1&&op_kind<=3)){
             if(stack.isEmpty()){
                 stack.push_back(tmp);
-                qDebug()<<tmp<<"进入stack";
+               // qDebug()<<tmp<<"进入stack";
             }
             else{
                 QString top=stack.back();//取op栈的栈顶
                 //如果栈顶的优先级大于或等于待入栈op，则弹出
                 while (isop(top)>=isop(tmp)&&isop(top)!=4) {
                     stack.pop();//操作符栈弹出
+                    if(numstack.isEmpty()) throw "表达式格式错误";
                     exp_node* r_node=numstack.back();
                     numstack.pop();
+                    if(numstack.isEmpty()) throw "表达式格式错误";
                     exp_node* l_node=numstack.back();
                     numstack.pop();
                     exp_node* newnode = new exp_node(top,l_node,r_node);
@@ -181,10 +183,14 @@ exp_node* exp::get_exp(QList<QString>oplist){
         else if(op_kind==5){
             QString top=stack.back();
             //此处以后可以加入语法规范检查
+
             while(isop(top)!=4){
                 stack.pop();
+                if(stack.isEmpty()) throw "表达式格式错误(括号缺失)";
+                if(numstack.isEmpty()) throw "表达式格式错误";
                 exp_node* r_node=numstack.back();
                 numstack.pop();
+                if(numstack.isEmpty()) throw "表达式格式错误";
                 exp_node* l_node=numstack.back();
                 numstack.pop();
                 exp_node* newnode = new exp_node(top,l_node,r_node);
@@ -196,11 +202,14 @@ exp_node* exp::get_exp(QList<QString>oplist){
                 stack.pop();//弹出左括号
         }
     }
+   //读取完symbol后，将操作符栈中的运算符弹出栈
     while(!stack.isEmpty()){
             tmp=stack.back();
             stack.pop();
+            if(numstack.isEmpty()) throw "表达式格式错误";
             exp_node* r_node=numstack.back();
             numstack.pop();
+            if(numstack.isEmpty()) throw "表达式格式错误";
             exp_node* l_node=numstack.back();
             numstack.pop();
             exp_node* newnode = new exp_node(tmp,l_node,r_node);
@@ -208,14 +217,15 @@ exp_node* exp::get_exp(QList<QString>oplist){
             numstack.push(newnode);
 
     }
+    if(numstack.isEmpty()) throw "表达式格式错误";
     exp_node *tmp_node=numstack.back();
    numstack.pop();
    if(numstack.isEmpty()){
        tmp_node->kind=OPRAND;
-       qDebug()<<"成功创建exp_tree";
+      // qDebug()<<"成功创建exp_tree";
        return tmp_node;
    }
-   return nullptr;//可根据这里报错
+   throw Error("表达式格式错误");//可根据这里报错
 }
 //输入一个除了行号外的string
 exp::exp(QString str){
@@ -227,6 +237,15 @@ exp::exp(QString str){
 
        oplist.pop_front();//弹出语句类型
        root=get_exp(oplist);//建立表达式树
+       if(oplist.size()==1) {
+           bool ok;
+           oplist.front().toInt(&ok);
+           if(ok)//是常数
+               root->kind=CONSTANT;
+           else root->kind=VARIANT;
+
+
+       }
 
     }
     else if(oplist.front()=="GOTO"){
@@ -277,13 +296,16 @@ exp::exp(QString str){
         root->then=then;
         tree_kind=IFexp;
     }
-    QMap<QString,int> all;
-    int tree_val=calculate(all);
-    qDebug()<<tree_val;
+       qDebug()<<"success to build a tree";
 }
 int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
     if(tmp->kind==CONSTANT) return tmp->value.toInt();
-    if(tmp->kind==VARIANT) return all[tmp->value];
+    if(tmp->kind==VARIANT) {
+       // qDebug()<<all[tmp->value];
+        if(all.find(tmp->value)==all.end())//变量为定义
+            throw Error("Variant "+tmp->value+" undifined");
+        return all[tmp->value];
+    }
     if(tmp->kind==DEFINE) throw "表达式树结构错误";
     if(tmp->kind==OPRAND) {
         int leftv=get_node_value(tmp->left,all);
@@ -308,8 +330,9 @@ int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
 int exp::calculate( QMap<QString,int> all){
     switch (tree_kind) {
     case LETexp:
-    case PRINTexp:
         return get_node_value(root->right,all);
+    case PRINTexp:
+        return get_node_value(root,all);
     case IFexp:
     case GOTOexp:
         throw Error("内部格式错误");

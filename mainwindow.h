@@ -26,6 +26,7 @@ public:
     void show_help();
     void set_syntree();
     void add_var(QString name,int val);
+    bool ifexist(QString name);
     ~MainWindow();
 private:
 

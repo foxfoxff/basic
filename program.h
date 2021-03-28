@@ -3,6 +3,7 @@
 #include"statement.h"
 #include "exp.h"
 #include<QMap>
+#include"error.h"
 enum Command{HELP,RUN,LET,LIST,CLEAR,QUIT};
 class program
 {
@@ -21,7 +22,7 @@ private:
     int lineSum;
     //存储程序的链表
     statement *head;
-    //存储表达式树的链表
+    //存储表达式树的map
     QMap<int,exp*> exp_map;
 
 
