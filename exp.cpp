@@ -1,5 +1,6 @@
 #include "exp.h"
 #include<QDebug>
+#include<cmath>
 exp::exp()
 {
 
@@ -20,7 +21,64 @@ int exp::isop(QString str){
         return -1;
     else return 0;
 }
+ QList<QString> exp::tokenizer(QString str){
+QList<QString> list;
+str=str.trimmed();
 
+int len=str.length();
+QString last;
+int cur_num=0;
+int cur_start=0;
+for(int i=0;i<len;++i){
+
+    if(str[i]=='+' || str[i]=='-'||str[i]=='/'||
+            str[i]=='('||str[i]==')'||str[i]=='='||str[i]=='<'||str[i]=='>'){
+        cur_num=i-1;
+        if(cur_start<=cur_num){
+            QString tmp=str.mid(cur_start,cur_num-cur_start+1);
+            tmp=tmp.trimmed();
+            list.push_back(tmp);
+
+        }
+        QString tmp=str[i]+"";
+        list.push_back(tmp);
+        cur_start=i+1;
+        continue;
+    }
+    if(str[i]=='*'&&str[i+1]!='*'){
+        cur_num=i-1;
+        if(cur_start<=cur_num){
+            QString tmp=str.mid(cur_start,cur_num-cur_start+1);
+            tmp=tmp.trimmed();
+            list.push_back(tmp);
+        }
+        QString tmp=str[i]+"";
+        list.push_back(tmp);
+        cur_start=i+1;
+         continue;
+    }
+    if(str[i]=='*'&&str[i+1]=='*'){
+        cur_num=i-1;
+        if(cur_start<=cur_num){
+            QString tmp=str.mid(cur_start,cur_num-cur_start+1);
+            tmp=tmp.trimmed();
+            list.push_back(tmp);
+        }
+        QString tmp=str[i]+"";
+        list.push_back(tmp);
+        cur_start=i+2;
+        i++;
+         continue;
+    }
+
+  if(i==len-1) {
+      QString tmp=str.mid(cur_start);
+      list.push_back(tmp);
+  }
+
+}
+return list;
+}
 
 QList<QString> exp::get_token(QString str){
     QList<QString> tokenlist;
@@ -39,8 +97,28 @@ QList<QString> exp::get_token(QString str){
 
     }
    // tokenlist.pop_front();
-    qDebug()<<"tokenlist:"<<tokenlist;
-    return tokenlist;
+    int len = tokenlist.length();
+    QList<QString> tokens;
+    for(int i=0;i<len;++i){
+        if(tokenlist[i]=="-"){
+            if(i==0) {
+                tmp_str=tokenlist[0]+tokenlist[1];
+                tokens.push_back(tmp_str);
+                i++;
+                continue;
+            }
+            if(tokenlist[i-1]=="("||tokenlist[i-1]=="="){
+                tmp_str=tokenlist[i]+tokenlist[i+1];
+                tokens.push_back(tmp_str);
+                i++;
+                continue;
+            }
+        }
+        tmp_str=tokenlist[i];
+       tokens.push_back(tmp_str);
+    }
+    qDebug()<<"tokens:"<<tokens;
+    return tokens;
 }
 exp_node* exp::get_exp(QList<QString>oplist){
 
@@ -52,9 +130,6 @@ exp_node* exp::get_exp(QList<QString>oplist){
     while(!oplist.isEmpty()){
 
         tmp=oplist.front();//从表达式中取符号
-
-        //qDebug()<<tmp;
-
         oplist.pop_front();
         int op_kind=isop(tmp);
         //qDebug()<<op_kind;
@@ -147,11 +222,12 @@ exp::exp(QString str){
 
     QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
     if(oplist.front()=="LET"||oplist.front()=="PRINT"){
-       // qDebug()<<"YES";
-      // qDebug()<<"oplist"<<oplist;
+       if(oplist.front()=="LET") tree_kind=LETexp;
+       else tree_kind=PRINTexp;
+
        oplist.pop_front();//弹出语句类型
-       root=get_exp(oplist);
-       //qDebug()<<root->value;
+       root=get_exp(oplist);//建立表达式树
+
     }
     else if(oplist.front()=="GOTO"){
         oplist.pop_front();
@@ -163,6 +239,7 @@ exp::exp(QString str){
             root=new exp_node("GOTO",newnode);
             root->kind=DEFINE;
         }
+        tree_kind=GOTOexp;
     }
     else if (oplist.front()=="IF") {
         oplist.pop_front();
@@ -198,9 +275,44 @@ exp::exp(QString str){
         root->kind=DEFINE;
         root->oprand=oprand;
         root->then=then;
+        tree_kind=IFexp;
     }
+    QMap<QString,int> all;
+    int tree_val=calculate(all);
+    qDebug()<<tree_val;
+}
+int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
+    if(tmp->kind==CONSTANT) return tmp->value.toInt();
+    if(tmp->kind==VARIANT) return all[tmp->value];
+    if(tmp->kind==DEFINE) throw "表达式树结构错误";
+    if(tmp->kind==OPRAND) {
+        int leftv=get_node_value(tmp->left,all);
+        int rightv=get_node_value(tmp->right,all);
+        if(tmp->value=="+") return leftv+rightv;
+        if(tmp->value=="-") return leftv-rightv;
+        if(tmp->value=="*") return leftv*rightv;
+        if(tmp->value=="/") {
+                if(rightv==0)
+                    throw Error("divide 0");
+            return leftv/rightv;
+        }
+        if(tmp->value=="**"){
+            if(leftv==0&&rightv==0)
+                throw Error("0的0次方");
+            return pow(leftv,rightv);
+        }
 
+    }
+}
 
+int exp::calculate( QMap<QString,int> all){
+    switch (tree_kind) {
+    case LETexp:
+    case PRINTexp:
+        return get_node_value(root->right,all);
+    case IFexp:
+    case GOTOexp:
+        throw Error("内部格式错误");
 
-
+    }
 }

@@ -13,9 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     bool ok;
-    QString a="-1";
-    qDebug()<<a.toInt(&ok);
-    qDebug()<<ok;
     ui->setupUi(this);
     this->setWindowTitle("Basic");
     QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -99,16 +96,17 @@ void MainWindow::on_lineEdit_returnPressed()
                qDebug()<<tmp_list;
                add_var(tmp_list[0],tmp_list[2].toInt());
             }
+            if(newline->kind==PrintStmt){
+                QString noNum="";
+                for(int i=1;i<newline->parts.length();++i){
+                    noNum+=newline->parts[i].trimmed()+" ";
+                }//提取除行号外的其他字符
+                noNum=noNum.trimmed();
+               QList<QString>tmp_list=exp::get_token(noNum);
+                 ui->result->append(tmp_list[0]);
+            }
         }
-        if(newline->kind==PrintStmt){
-            QString noNum="";
-            for(int i=1;i<newline->parts.length();++i){
-                noNum+=newline->parts[i].trimmed()+" ";
-            }//提取除行号外的其他字符
-            noNum=noNum.trimmed();
-           QList<QString>tmp_list=exp::get_token(noNum);
-             ui->result->append(tmp_list[0]);
-        }
+
      }
      cur_linenum++;
 
