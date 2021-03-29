@@ -46,6 +46,7 @@ for(int i=0;i<len;++i){
         continue;
     }
     if(str[i]=='*'&&str[i+1]!='*'){
+        qDebug()<<"不是乘方";
         cur_num=i-1;
         if(cur_start<=cur_num){
             QString tmp=str.mid(cur_start,cur_num-cur_start+1);
@@ -65,6 +66,7 @@ for(int i=0;i<len;++i){
             list.push_back(tmp);
         }
         QString tmp=str[i]+"";
+        tmp+=(str[i+1]+"");
         list.push_back(tmp);
         cur_start=i+2;
         i++;
@@ -150,7 +152,7 @@ exp_node* exp::get_exp(QList<QString>oplist){
         }
 
         //取出的是运算符
-        else if(op_kind==-1||(op_kind>=1&&op_kind<=3)){
+        else if(op_kind==-1||(op_kind>=1&&op_kind<3)){
             if(stack.isEmpty()){
                 stack.push_back(tmp);
                // qDebug()<<tmp<<"进入stack";
@@ -159,6 +161,31 @@ exp_node* exp::get_exp(QList<QString>oplist){
                 QString top=stack.back();//取op栈的栈顶
                 //如果栈顶的优先级大于或等于待入栈op，则弹出
                 while (isop(top)>=isop(tmp)&&isop(top)!=4) {
+                    stack.pop();//操作符栈弹出
+                    if(numstack.isEmpty()) throw "表达式格式错误";
+                    exp_node* r_node=numstack.back();
+                    numstack.pop();
+                    if(numstack.isEmpty()) throw "表达式格式错误";
+                    exp_node* l_node=numstack.back();
+                    numstack.pop();
+                    exp_node* newnode = new exp_node(top,l_node,r_node);
+                    newnode->kind=OPRAND;
+                    numstack.push(newnode);
+                    postlist.push_back(top);
+                    top=stack.back();//重新设置栈顶
+                }
+                stack.push_back(tmp);
+            }
+        }
+        else if(op_kind==3){
+            if(stack.isEmpty()){
+                stack.push_back(tmp);
+               // qDebug()<<tmp<<"进入stack";
+            }
+            else{
+                QString top=stack.back();//取op栈的栈顶
+                //如果栈顶的优先级大于或等于待入栈op，则弹出
+                while (isop(top)>isop(tmp)&&isop(top)!=4) {
                     stack.pop();//操作符栈弹出
                     if(numstack.isEmpty()) throw "表达式格式错误";
                     exp_node* r_node=numstack.back();
@@ -231,6 +258,7 @@ exp_node* exp::get_exp(QList<QString>oplist){
 exp::exp(QString str){
 
     QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
+    qDebug()<<oplist;
     if(oplist.front()=="LET"||oplist.front()=="PRINT"){
        if(oplist.front()=="LET") tree_kind=LETexp;
        else tree_kind=PRINTexp;
@@ -296,7 +324,8 @@ exp::exp(QString str){
         root->then=then;
         tree_kind=IFexp;
     }
-       qDebug()<<"success to build a tree";
+     QMap<QString,int> all;
+       qDebug()<<"val:"<<calculate(all);
 }
 int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
     if(tmp->kind==CONSTANT) return tmp->value.toInt();
