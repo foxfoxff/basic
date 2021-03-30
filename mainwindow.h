@@ -39,13 +39,13 @@ public:
   signals:
     void Goto(int);
     void afterinput();
-
+public slots:
+    void handleGoto(int a);
 
 private:
-
-    Ui::MainWindow *ui;
+     Ui::MainWindow *ui;
      program *prolist;
-    int cur_linenum;
+     int cur_linenum;
      evalstate *vals;
      int inputnum;
 private slots:
@@ -56,5 +56,7 @@ private slots:
     void on_lineEdit_returnPressed();
 
     void on_pushButton_3_clicked();
+    void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
 };
 #endif // MAINWINDOW_H
