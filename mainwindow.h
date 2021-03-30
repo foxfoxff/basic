@@ -32,6 +32,7 @@ public:
     void handleLet(int linenum);
     void handlePrint(int linenum);
     void clear();
+    bool handleIF(int);
     void set_var(QString name,int val){
         vals->all[name]=val;
     }

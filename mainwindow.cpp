@@ -123,7 +123,6 @@ void MainWindow::on_lineEdit_returnPressed()
          }
          //新写入的一行不是cmd
           else {
-
                     // 三种直接运行的特殊情况
                    if(!newline->isfistNum){
                        //LET
@@ -205,6 +204,15 @@ void MainWindow::handlePrint(int linenum){
 
      ui->result->append(QString::number(val));
 }
+//处理IF
+bool MainWindow::handleIF(int linenum){
+    exp* tmp=prolist->exp_map[linenum];
+    if(tmp->calculate(vals->all)){
+        handleGoto(tmp->root->then->value.toInt());
+        return true;
+    }
+    return false;
+}
 
 statement* MainWindow::run_code(statement *cur_line){
     //cur_line的下一行开始执行
@@ -245,9 +253,14 @@ statement* MainWindow::run_code(statement *cur_line){
                 if(!isint) {qDebug()<<"here"; throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");}
                 emit Goto(n);
                 return cur_line;
+            }
+            case IfStmt:{
+                 if(handleIF(cur_line->lineNum)) return nullptr;
 
+                break;
 
             }
+
 
              case EndStmt:
                 return nullptr;
@@ -258,6 +271,7 @@ statement* MainWindow::run_code(statement *cur_line){
    }
 
 }
+
 void MainWindow::handleGoto(int linenum){
 
         statement *p= prolist->head;

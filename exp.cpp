@@ -5,6 +5,7 @@ exp::exp()
 {
 
 }
+//用于判断元素是什么类型的
 //-1--"=",0--计算量, 1--"+ -",2--"* /",3--"**",4--左括号，5--"右括号"
 int exp::isop(QString str){
     if(str=="+"||str=='-')
@@ -124,6 +125,12 @@ QList<QString> exp::get_token(QString str){
 }
 exp_node* exp::get_exp(QList<QString>oplist){
 
+    bool isonly=false;
+    int onekind=-2;
+    if(oplist.size()==1) {
+        onekind=isop(oplist.front());
+        isonly=true;
+    }
     QStack<QString> stack;//操作符栈
     QList<QString> postlist;
     QStack<exp_node* > numstack;//操作数栈
@@ -250,6 +257,12 @@ exp_node* exp::get_exp(QList<QString>oplist){
    if(numstack.isEmpty()){
        tmp_node->kind=OPRAND;
       // qDebug()<<"成功创建exp_tree";
+       if(isonly){
+           bool isint;
+           tmp_node->value.toInt(&isint);
+           if(isint) tmp_node->kind=CONSTANT;
+           else tmp_node->kind=VARIANT;
+       }
        return tmp_node;
    }
    throw Error("表达式格式错误");//可根据这里报错
@@ -335,7 +348,7 @@ int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
             throw Error("Variant "+tmp->value+" undifined");
         return all[tmp->value];
     }
-    if(tmp->kind==DEFINE) throw "表达式树结构错误";
+    if(tmp->kind==DEFINE) throw Error("表达式树结构错误");
     if(tmp->kind==OPRAND) {
         int leftv=get_node_value(tmp->left,all);
         int rightv=get_node_value(tmp->right,all);
@@ -363,6 +376,13 @@ int exp::calculate( QMap<QString,int> all){
     case PRINTexp:
         return get_node_value(root,all);
     case IFexp:
+    {
+        int l=get_node_value(root->left,all);
+        int r=get_node_value(root->right,all);
+        if(root->oprand->value=="=") return int(l==r);
+        else if (root->oprand->value==">") return int(l>r);
+        else if (root->oprand->value=="<") return int(l<r);
+    }
     case GOTOexp:
         throw Error("内部格式错误");
 
