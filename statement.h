@@ -2,6 +2,7 @@
 #define STATEMENT_H
 #include<QString>
 #include<QStringList>
+#include"error.h"
 //statement kinds
 enum state_t{RemStmt,LetStmt,PrintStmt,IuputStmt,GotoStmt,IfStmt,EndStmt,CmdStmt,DelStmt};
 

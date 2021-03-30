@@ -211,6 +211,7 @@ statement* MainWindow::run_code(statement *cur_line){
         cur_line=cur_line->next;
         switch (cur_line->kind) {
         case RemStmt:
+          
                 break;
             case LetStmt:
                 handleLet(cur_line->lineNum);
@@ -229,7 +230,7 @@ statement* MainWindow::run_code(statement *cur_line){
                 if(!isint)  throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");
                 emit Goto(n);
             break;
-
+            
 
               //case IfStmt:
 

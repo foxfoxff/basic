@@ -22,14 +22,25 @@ public:
     MainWindow(QWidget *parent = nullptr);
     void set_result();
     void load(QTextStream &in);
-    void run_code();
+    statement* run_code(statement*);
     void show_help();
     void set_syntree();
     void add_var(QString name,int val);
     bool ifexist(QString name);
     void set_input();
     void handleinput(int);
+    void handleLet(int linenum);
+    void handlePrint(int linenum);
+    void clear();
+    void set_var(QString name,int val){
+        vals->all[name]=val;
+    }
     ~MainWindow();
+  signals:
+    void Goto(int);
+    void afterinput();
+
+
 private:
 
     Ui::MainWindow *ui;

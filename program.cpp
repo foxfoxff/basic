@@ -17,6 +17,7 @@ void program::clear(){
 
     }
     lineSum=0;
+    exp_map.clear();
 }
 
 
@@ -66,7 +67,7 @@ state_t program::handleNew(statement *newline){
                        exp_map.remove(newline->lineNum);
                 }
                 else {
-                    throw Error("语法错误");
+                    throw Error("第"+QString::number(newline->lineNum)+"行存在，请先删除");
                 }
             }
             //增加一行，增加在p之后

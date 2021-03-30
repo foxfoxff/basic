@@ -21,7 +21,8 @@ void statement::choose_kind(QString part_k){
         kind=IfStmt;
     else if(part_k=="END")
         kind=EndStmt;
-    else kind=CmdStmt;
+    else if(part_k=="RUN"||part_k=="HELP"||part_k=="CLEAR") kind=CmdStmt;
+    else throw Error("未知语言");
 
 
 
@@ -39,6 +40,7 @@ statement::statement(QString value,statement*n){
    //第一部分是数字
    if(isfistNum){
        lineNum=parts[0].toInt(&isfistNum);//设置行号
+       if(lineNum>=10000) throw Error("行号超标");
        if(parts.size()==1) kind=DelStmt;//类型为del
        if(parts.size()>1){
            choose_kind(parts[1]);
