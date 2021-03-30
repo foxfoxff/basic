@@ -46,7 +46,7 @@ for(int i=0;i<len;++i){
         continue;
     }
     if(str[i]=='*'&&str[i+1]!='*'){
-        qDebug()<<"不是乘方";
+        //qDebug()<<"不是乘方";
         cur_num=i-1;
         if(cur_start<=cur_num){
             QString tmp=str.mid(cur_start,cur_num-cur_start+1);
@@ -258,7 +258,7 @@ exp_node* exp::get_exp(QList<QString>oplist){
 exp::exp(QString str){
 
     QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
-    qDebug()<<oplist;
+  //  qDebug()<<oplist;
     if(oplist.front()=="LET"||oplist.front()=="PRINT"){
        if(oplist.front()=="LET") tree_kind=LETexp;
        else tree_kind=PRINTexp;
@@ -325,7 +325,7 @@ exp::exp(QString str){
         tree_kind=IFexp;
     }
      QMap<QString,int> all;
-       qDebug()<<"val:"<<calculate(all);
+     //  qDebug()<<"val:"<<calculate(all);
 }
 int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
     if(tmp->kind==CONSTANT) return tmp->value.toInt();

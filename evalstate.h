@@ -2,7 +2,7 @@
 #define EVALSTATE_H
 
 #include<QMap>
-
+#include<QQueue>
 class evalstate
 {
  friend class program;
@@ -21,6 +21,7 @@ public:
 private:
     int num;
     QMap<QString,int> all;
+    QQueue<QString> need_input;
 };
 
 #endif // EVALSTATE_H

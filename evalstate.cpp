@@ -11,4 +11,5 @@ void evalstate::add(QString valname,int value){
 }
 void evalstate::clear(){
     all.clear();
+    need_input.clear();
 }

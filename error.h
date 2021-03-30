@@ -6,9 +6,9 @@ class Error
 {
 public:
     Error(QString errname);
-
+     QString errname;
  private:
-    QString errname;
+
 };
 
 #endif // ERROR_H

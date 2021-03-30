@@ -27,6 +27,8 @@ public:
     void set_syntree();
     void add_var(QString name,int val);
     bool ifexist(QString name);
+    void set_input();
+    void handleinput(int);
     ~MainWindow();
 private:
 
@@ -34,6 +36,7 @@ private:
      program *prolist;
     int cur_linenum;
      evalstate *vals;
+     int inputnum;
 private slots:
 
 
