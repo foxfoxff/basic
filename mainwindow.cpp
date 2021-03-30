@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->lineEdit->setFocus();
     inputnum=0;
+    connect(this, SIGNAL(Goto(int)), this, SLOT(handleGoto(int)));
 
 }
 
@@ -50,7 +51,7 @@ void MainWindow::set_syntree(){
 }
 //载入流文件
 void MainWindow::load(QTextStream &in){
-    this->prolist->clear();
+
 
     QString str;
     while (!in.atEnd()) {
@@ -60,6 +61,7 @@ void MainWindow::load(QTextStream &in){
          prolist->handleNew(newline);
     }
     set_result();
+    //qDebug()<<prolist->head->lineNum;
 }
 
 //处理input
@@ -121,7 +123,6 @@ void MainWindow::on_lineEdit_returnPressed()
          }
          //新写入的一行不是cmd
           else {
-
 
                     // 三种直接运行的特殊情况
                    if(!newline->isfistNum){
@@ -209,35 +210,63 @@ statement* MainWindow::run_code(statement *cur_line){
     //cur_line的下一行开始执行
     while(cur_line->next){
         cur_line=cur_line->next;
+
         switch (cur_line->kind) {
         case RemStmt:
+                qDebug()<<cur_line->lineNum;
                 break;
             case LetStmt:
-                handleLet(cur_line->lineNum);
-                break;
+            {
+            handleLet(cur_line->lineNum);
+            qDebug()<<cur_line->lineNum;
+            break;
+            }
             case PrintStmt:
-                handlePrint(cur_line->lineNum);
-                break;
-            case IuputStmt:
+            {
+            handlePrint(cur_line->lineNum);
+            qDebug()<<cur_line->lineNum;
+            break;
+
+         }
+
+             case IuputStmt:
+               {
                 if(cur_line->parts.length()<=2) throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");
                 vals->need_input.push_back(cur_line->parts[2]);
                 ui->lineEdit->setText("? ");
                 return cur_line;
-             case GotoStmt:
+                }
+
+              case GotoStmt:{
                 bool isint;
-                int n=cur_line->parts[1].toInt(&isint);
-                if(!isint)  throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");
+                int n=cur_line->parts[2].toInt(&isint);
+                qDebug()<<cur_line->lineNum;
+
+                if(!isint) {qDebug()<<"here"; throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");}
                 emit Goto(n);
-            break;
+                return cur_line;
 
 
-              //case IfStmt:
+            }
+
+             case EndStmt:
+                return nullptr;
+
 
         }
 
    }
 
+}
+void MainWindow::handleGoto(int linenum){
 
+        statement *p= prolist->head;
+        if(!p->next) throw Error("不存在第"+QString::number(linenum)+"行");
+        while(p->next&&p->next->lineNum!=linenum){
+            p=p->next;
+        }
+        if(!p->next) throw Error("不存在第"+QString::number(linenum)+"行");
+        run_code(p);
 
 }
 
@@ -254,4 +283,14 @@ void MainWindow:: add_var(QString name,int val){
 
 bool MainWindow:: ifexist(QString name){
     return vals->exist(name);
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    clear();
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    run_code(prolist->head);
 }
