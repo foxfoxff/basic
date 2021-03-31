@@ -19,10 +19,15 @@ struct exp_node{
         value=val;
         left=l;
         right=r;
+        oprand=nullptr;
+        then=nullptr;
 
     }
 };
-
+struct syn_node{
+    int level;
+    QString str;
+};
 class exp
 {
     friend class MainWindow;
@@ -37,11 +42,14 @@ public:
     exp_node* get_exp(QList<QString>);
     int calculate( QMap<QString,int> all);
     int get_node_value(exp_node*,QMap<QString,int> all);
-
+    QList<QString> get_syntax();//获得某条语句对应的要展示的语法树
+    QList<syn_node> get_pre_order();//获得前序遍历的结果
+    void pre_order(QList<syn_node>&t,exp_node*,int level=0);//前序遍历
 
 private:
     exp_node *root;
     exp_kind tree_kind;
+
 
 
 

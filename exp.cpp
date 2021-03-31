@@ -338,7 +338,8 @@ exp::exp(QString str){
         tree_kind=IFexp;
     }
      QMap<QString,int> all;
-     //  qDebug()<<"val:"<<calculate(all);
+    // qDebug()<<"before pre";
+
 }
 int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
     if(tmp->kind==CONSTANT) return tmp->value.toInt();
@@ -388,3 +389,34 @@ int exp::calculate( QMap<QString,int> all){
 
     }
 }
+
+void exp:: pre_order(QList<syn_node>& syns,exp_node*cur,int level){
+            if(cur==nullptr) return;
+            syn_node newnode={level,cur->value};
+           // qDebug()<<newnode.str;
+            syns.push_back(newnode);
+            pre_order(syns,cur->left,level+1);
+            pre_order(syns,cur->oprand,level+1);
+            pre_order(syns,cur->right,level+1);
+            pre_order(syns,cur->then,level+1);
+
+
+}
+ QList<syn_node> exp::get_pre_order(){
+        QList<syn_node> syns;
+        pre_order(syns,root);
+        return syns;
+}
+ QList<QString> exp::get_syntax(){
+     QList<syn_node> syns=get_pre_order();
+     QList<QString> strs;
+     while(!syns.isEmpty()){
+         QString tmp=syns.front().str;
+         for(int i=0;i<syns.front().level;++i){
+             tmp="    "+tmp;
+         }
+         strs.push_back(tmp);
+         syns.pop_front();
+     }
+     return strs;
+ }

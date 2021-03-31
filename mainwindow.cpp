@@ -24,7 +24,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->lineEdit->setFocus();
     inputnum=0;
+    //连接信号和槽
     connect(this, SIGNAL(Goto(int)), this, SLOT(handleGoto(int)));
+    connect(this, SIGNAL(afterinput(statement *)), this, SLOT(continuerun(statement *)));
 
 }
 
@@ -35,18 +37,26 @@ MainWindow::~MainWindow()
 
 void MainWindow::set_result(){
       ui->textBrowser->clear();
-      ui->brwoser->clear();
+     // ui->brwoser->clear();
      statement *tmp=prolist->head;
     auto Map=prolist->exp_map;
      while (tmp->next) {
          tmp=tmp->next;
          ui->textBrowser->append(tmp->code);
+
          //ui->brwoser->append(Map[tmp->lineNum]->root->value);
      }
+   //  ui->brwoser->append(tmp->code);
 }
+//添加语法树
+void MainWindow:: add_syntax(exp *node,int linenum){
+    QList<QString> syntax_lines=node->get_syntax();
+    int a=0;
+    while(!syntax_lines.isEmpty()){
+        ui->brwoser->append(syntax_lines.front());
+        syntax_lines.pop_front();
 
-void MainWindow::set_syntree(){
-    ui->brwoser->clear();
+    }
 
 }
 //载入流文件
@@ -72,7 +82,12 @@ void MainWindow::handleinput(int num){
    //qDebug()<<var;
    vals->need_input.pop_front();
    if(ifexist(var)) {qDebug()<<"y";vals->all[var]=num;}
-   else { qDebug()<<"n";   add_var(var,num);}
+   else {  add_var(var,num);}
+   if(!inputline.isEmpty()) {
+       statement *tmp=inputline.front();
+       inputline.pop_front();
+       emit afterinput(tmp);
+   }
 }
 //CLEAR
 void MainWindow::clear(){
@@ -81,6 +96,8 @@ void MainWindow::clear(){
     ui->result->clear();
     prolist->clear();
     vals->clear();
+    inputline.clear();
+    ui->lineEdit->clear();
     prolist=new program;
     vals=new evalstate;
 }
@@ -98,7 +115,7 @@ void MainWindow::on_lineEdit_returnPressed()
             if(a.length()<2) throw Error("请输入值");
             //qDebug()<<tmp;
             handleinput(tmp.toInt());
-            ui->lineEdit->clear();
+
             return;
         }
 
@@ -115,11 +132,16 @@ void MainWindow::on_lineEdit_returnPressed()
             if(newline->parts[0]=="RUN")
                 {run_code(prolist->head);}//run_code();
             else if(newline->parts[0]=="HELP")
-            {show_help();}//
+            {ui->lineEdit->clear();show_help();}//
             else if(newline->parts[0]=="CLEAR")
-                {clear();}
+                {ui->lineEdit->clear();
+                clear();}
             else if(newline->parts[0]=="QUIT")
+               {
+
+                ui->lineEdit->clear();
                 this->close();
+            }
          }
          //新写入的一行不是cmd
           else {
@@ -159,11 +181,13 @@ void MainWindow::on_lineEdit_returnPressed()
                               qDebug()<<"进入了input";
                               return;
                         }
+                        ui->lineEdit->clear();
                    }
+                   ui->lineEdit->clear();
 
             }
 
-         ui->lineEdit->clear();
+
          cur_linenum++;
 
 
@@ -188,6 +212,7 @@ void MainWindow::on_pushButton_3_clicked()
 //处理LET
 void MainWindow::handleLet(int linenum){
     exp* tmp=prolist->exp_map[linenum];
+    add_syntax(tmp,linenum);
     int val=prolist->exp_map[linenum]->calculate(vals->all);
     if(ifexist(tmp->root->left->value)) {
 
@@ -201,7 +226,7 @@ void MainWindow::handleLet(int linenum){
 void MainWindow::handlePrint(int linenum){
 
     int val=prolist->exp_map[linenum]->calculate(vals->all);
-
+    add_syntax(prolist->exp_map[linenum],linenum);
      ui->result->append(QString::number(val));
 }
 //处理IF
@@ -214,7 +239,27 @@ bool MainWindow::handleIF(int linenum){
     return false;
 }
 
+//展示syntax tree
+/*void MainWindow:: add_syntax(exp* new_exp,int linenum){
+    switch (new_exp->tree_kind) {
+        case LetStmt:{
+            QString num=QString::number(linenum)+" LET=";
+            ui->brwoser->append(num);
+
+
+       }
+
+
+    }
+}*/
+
+
+
+
+
+//code runner
 statement* MainWindow::run_code(statement *cur_line){
+    ui->lineEdit->clear();
     //cur_line的下一行开始执行
     while(cur_line->next){
         cur_line=cur_line->next;
@@ -242,25 +287,27 @@ statement* MainWindow::run_code(statement *cur_line){
                 if(cur_line->parts.length()<=2) throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");
                 vals->need_input.push_back(cur_line->parts[2]);
                 ui->lineEdit->setText("? ");
+                inputline.push_back(cur_line);
                 return cur_line;
                 }
 
               case GotoStmt:{
                 bool isint;
                 int n=cur_line->parts[2].toInt(&isint);
-                qDebug()<<cur_line->lineNum;
+
+                add_syntax(prolist->exp_map[cur_line->lineNum],cur_line->lineNum);
 
                 if(!isint) {qDebug()<<"here"; throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");}
                 emit Goto(n);
                 return cur_line;
             }
             case IfStmt:{
+                 add_syntax(prolist->exp_map[cur_line->lineNum],cur_line->lineNum);
                  if(handleIF(cur_line->lineNum)) return nullptr;
 
                 break;
 
             }
-
 
              case EndStmt:
                 return nullptr;

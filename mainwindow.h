@@ -32,16 +32,24 @@ public:
     void handleLet(int linenum);
     void handlePrint(int linenum);
     void clear();
-    bool handleIF(int);
+    bool handleIF(int);    
+    void add_syntax(exp*,int);
+
     void set_var(QString name,int val){
         vals->all[name]=val;
     }
+    QQueue<statement*> inputline;//要执行输入的行
     ~MainWindow();
   signals:
     void Goto(int);
-    void afterinput();
+    void afterinput(statement*);//输入完后发出的信号
 public slots:
     void handleGoto(int a);
+    //输入完成后继续执行的槽函数
+    void continuerun(statement* input){
+
+        run_code(input);
+    }
 
 private:
      Ui::MainWindow *ui;
