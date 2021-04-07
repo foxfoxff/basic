@@ -15,7 +15,7 @@ public:
     void clear();
     state_t handleNew(statement *newline);//根据返回值可判断新的语句类型
    // Command insert(QString value);//将新语句加入链表
-    void runcode();
+
     void showhelp();
 private:
     //语句总数

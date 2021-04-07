@@ -38,8 +38,7 @@ state_t program::handleNew(statement *newline){
         if(head->next==nullptr){
            if(newline->parts.length()!=1&&newline->isfistNum)
                 {
-                head->next=newline;
-                lineSum++;
+
                 QString noNum="";
                 for(int i=1;i<newline->parts.length();++i){
                     noNum+=newline->parts[i].trimmed()+" ";
@@ -47,6 +46,8 @@ state_t program::handleNew(statement *newline){
                 noNum=noNum.trimmed();               
                  exp* new_exp= new exp(noNum);                
                  exp_map.insert(newline->lineNum,new_exp);
+                 head->next=newline;
+                 lineSum++;
 
            }
         }
@@ -73,15 +74,16 @@ state_t program::handleNew(statement *newline){
             //增加一行，增加在p之后
             else{
                 if(newline->parts.length()!=1){
-                    newline->next=p->next;
-                    p->next=newline;
-                    lineSum++;
+
                     QString noNum="";
                     for(int i=1;i<newline->parts.length();++i){
                         noNum+=newline->parts[i].trimmed()+" ";
                     }//提取除行号外的其他字符
                      exp* new_exp= new exp(noNum);
                      exp_map.insert(newline->lineNum,new_exp);
+                     newline->next=p->next;
+                     p->next=newline;
+                     lineSum++;
                 }
             }
 

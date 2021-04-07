@@ -52,12 +52,38 @@ void MainWindow::set_result(){
 void MainWindow:: add_syntax(exp *node,int linenum){
     QList<QString> syntax_lines=node->get_syntax();
     int a=0;
+    ui->brwoser->append(QString::number(linenum)+" "+syntax_lines.front());
+    syntax_lines.pop_front();
     while(!syntax_lines.isEmpty()){
         ui->brwoser->append(syntax_lines.front());
         syntax_lines.pop_front();
 
     }
 
+}
+void MainWindow::set_syntax(){
+    statement *tmp=prolist->head;
+    while(tmp->next){
+        tmp=tmp->next;
+        if(tmp->kind==RemStmt){
+                QString firstline=tmp->lineNum+" REM";
+                ui->brwoser->append(firstline);
+                  QString secondline=tmp->lineNum+"    ";
+                  if(tmp->parts.length()>=3)
+                  for(int i=2;i<tmp->parts.length();++i){
+                      secondline+=tmp->parts[i].trimmed()+" ";
+                    }
+                  ui->brwoser->append(secondline);
+        }
+         if(tmp->kind==LetStmt||tmp->kind==PrintStmt||tmp->kind==IfStmt||tmp->kind==GotoStmt){
+             exp* exp_sym=prolist->exp_map[tmp->lineNum];
+             add_syntax(exp_sym,tmp->lineNum);
+         }
+         if(tmp->kind==EndStmt){
+             ui->brwoser->append(QString::number(tmp->lineNum)+" END");
+         }
+
+}
 }
 //载入流文件
 void MainWindow::load(QTextStream &in){
@@ -129,8 +155,10 @@ void MainWindow::on_lineEdit_returnPressed()
          //将新的语句加入链表，创建相应的exp_tree存入map中，并返回新语句的类型
          if(prolist->handleNew(newline)==CmdStmt){
 
-            if(newline->parts[0]=="RUN")
-                {run_code(prolist->head);}//run_code();
+            if(newline->parts[0]=="RUN"){
+                set_syntax();
+                    run_code(prolist->head);
+            }//run_code();
             else if(newline->parts[0]=="HELP")
             {ui->lineEdit->clear();show_help();}//
             else if(newline->parts[0]=="CLEAR")
@@ -194,7 +222,10 @@ void MainWindow::on_lineEdit_returnPressed()
          set_result();//设置代码框
     }  catch (Error a) {
         qDebug()<<a.errname;
-
+        QMessageBox tip(this);
+        tip.setText(a.errname);
+        tip.setWindowTitle("WRONG");
+        tip.exec();
         }
 }
 
@@ -212,7 +243,7 @@ void MainWindow::on_pushButton_3_clicked()
 //处理LET
 void MainWindow::handleLet(int linenum){
     exp* tmp=prolist->exp_map[linenum];
-    add_syntax(tmp,linenum);
+   // add_syntax(tmp,linenum);
     int val=prolist->exp_map[linenum]->calculate(vals->all);
     if(ifexist(tmp->root->left->value)) {
 
@@ -226,7 +257,7 @@ void MainWindow::handleLet(int linenum){
 void MainWindow::handlePrint(int linenum){
 
     int val=prolist->exp_map[linenum]->calculate(vals->all);
-    add_syntax(prolist->exp_map[linenum],linenum);
+  //  add_syntax(prolist->exp_map[linenum],linenum);
      ui->result->append(QString::number(val));
 }
 //处理IF
@@ -295,14 +326,14 @@ statement* MainWindow::run_code(statement *cur_line){
                 bool isint;
                 int n=cur_line->parts[2].toInt(&isint);
 
-                add_syntax(prolist->exp_map[cur_line->lineNum],cur_line->lineNum);
+              //  add_syntax(prolist->exp_map[cur_line->lineNum],cur_line->lineNum);
 
                 if(!isint) {qDebug()<<"here"; throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");}
                 emit Goto(n);
                 return cur_line;
             }
             case IfStmt:{
-                 add_syntax(prolist->exp_map[cur_line->lineNum],cur_line->lineNum);
+               //  add_syntax(prolist->exp_map[cur_line->lineNum],cur_line->lineNum);
                  if(handleIF(cur_line->lineNum)) return nullptr;
 
                 break;
@@ -353,5 +384,6 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_pushButton_2_clicked()
 {
+    set_syntax();
     run_code(prolist->head);
 }

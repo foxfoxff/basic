@@ -169,10 +169,10 @@ exp_node* exp::get_exp(QList<QString>oplist){
                 //如果栈顶的优先级大于或等于待入栈op，则弹出
                 while (isop(top)>=isop(tmp)&&isop(top)!=4) {
                     stack.pop();//操作符栈弹出
-                    if(numstack.isEmpty()) throw "表达式格式错误";
+                    if(numstack.isEmpty()) throw Error("表达式格式错误");
                     exp_node* r_node=numstack.back();
                     numstack.pop();
-                    if(numstack.isEmpty()) throw "表达式格式错误";
+                    if(numstack.isEmpty())  throw Error("表达式格式错误");
                     exp_node* l_node=numstack.back();
                     numstack.pop();
                     exp_node* newnode = new exp_node(top,l_node,r_node);
@@ -194,10 +194,10 @@ exp_node* exp::get_exp(QList<QString>oplist){
                 //如果栈顶的优先级大于或等于待入栈op，则弹出
                 while (isop(top)>isop(tmp)&&isop(top)!=4) {
                     stack.pop();//操作符栈弹出
-                    if(numstack.isEmpty()) throw "表达式格式错误";
+                    if(numstack.isEmpty()) throw Error("表达式格式错误");
                     exp_node* r_node=numstack.back();
                     numstack.pop();
-                    if(numstack.isEmpty()) throw "表达式格式错误";
+                    if(numstack.isEmpty()) throw Error("表达式格式错误");
                     exp_node* l_node=numstack.back();
                     numstack.pop();
                     exp_node* newnode = new exp_node(top,l_node,r_node);
@@ -220,11 +220,11 @@ exp_node* exp::get_exp(QList<QString>oplist){
 
             while(isop(top)!=4){
                 stack.pop();
-                if(stack.isEmpty()) throw "表达式格式错误(括号缺失)";
-                if(numstack.isEmpty()) throw "表达式格式错误";
+                if(stack.isEmpty()) throw Error("表达式格式错误");
+                if(numstack.isEmpty()) throw Error("表达式格式错误");
                 exp_node* r_node=numstack.back();
                 numstack.pop();
-                if(numstack.isEmpty()) throw "表达式格式错误";
+                if(numstack.isEmpty()) throw Error("表达式格式错误");
                 exp_node* l_node=numstack.back();
                 numstack.pop();
                 exp_node* newnode = new exp_node(top,l_node,r_node);
@@ -240,10 +240,10 @@ exp_node* exp::get_exp(QList<QString>oplist){
     while(!stack.isEmpty()){
             tmp=stack.back();
             stack.pop();
-            if(numstack.isEmpty()) throw "表达式格式错误";
+            if(numstack.isEmpty()) throw Error("表达式格式错误");
             exp_node* r_node=numstack.back();
             numstack.pop();
-            if(numstack.isEmpty()) throw "表达式格式错误";
+            if(numstack.isEmpty()) throw Error("表达式格式错误");
             exp_node* l_node=numstack.back();
             numstack.pop();
             exp_node* newnode = new exp_node(tmp,l_node,r_node);
@@ -251,7 +251,7 @@ exp_node* exp::get_exp(QList<QString>oplist){
             numstack.push(newnode);
 
     }
-    if(numstack.isEmpty()) throw "表达式格式错误";
+    if(numstack.isEmpty()) throw Error("表达式格式错误");
     exp_node *tmp_node=numstack.back();
    numstack.pop();
    if(numstack.isEmpty()){
@@ -413,10 +413,19 @@ void exp:: pre_order(QList<syn_node>& syns,exp_node*cur,int level){
      while(!syns.isEmpty()){
          QString tmp=syns.front().str;
          for(int i=0;i<syns.front().level;++i){
-             tmp="    "+tmp;
+             tmp="    "+tmp;   
          }
          strs.push_back(tmp);
          syns.pop_front();
+     }
+     if(this->tree_kind==LETexp){
+         strs[0]="LET =";
+     }
+     if(this->tree_kind==PRINTexp){
+         for(int i=0;i<strs.size();++i){
+             strs[i]="    "+strs[i];
+         }
+         strs.push_front("PRINT");
      }
      return strs;
  }

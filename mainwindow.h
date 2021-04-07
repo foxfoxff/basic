@@ -34,7 +34,7 @@ public:
     void clear();
     bool handleIF(int);    
     void add_syntax(exp*,int);
-
+    void set_syntax();
     void set_var(QString name,int val){
         vals->all[name]=val;
     }
