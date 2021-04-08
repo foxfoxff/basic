@@ -66,9 +66,13 @@ void MainWindow::set_syntax(){
     while(tmp->next){
         tmp=tmp->next;
         if(tmp->kind==RemStmt){
-                QString firstline=tmp->lineNum+" REM";
+            qDebug()<<"you are in REM";
+                QString firstline=QString::number(tmp->lineNum)+" REM";
+                qDebug()<<tmp->lineNum;
+                qDebug()<<firstline;
                 ui->brwoser->append(firstline);
-                  QString secondline=tmp->lineNum+"    ";
+                  QString secondline="    ";
+                 // qDebug()<<tmp->parts;
                   if(tmp->parts.length()>=3)
                   for(int i=2;i<tmp->parts.length();++i){
                       secondline+=tmp->parts[i].trimmed()+" ";
@@ -179,7 +183,7 @@ void MainWindow::on_lineEdit_returnPressed()
                         if(newline->kind==LetStmt){
                        exp *tmp_exp = new exp(newline->code);
                        int val=tmp_exp->calculate(vals->all);
-                       qDebug()<<"计算成功"<<val;
+                       //qDebug()<<"计算成功"<<val;
                        QList<QString> tokenlist= exp::get_token(newline->code);
                         //qDebug()<<tokenlist;
                        if(ifexist(tokenlist[1]))
@@ -297,18 +301,18 @@ statement* MainWindow::run_code(statement *cur_line){
 
         switch (cur_line->kind) {
         case RemStmt:
-                qDebug()<<cur_line->lineNum;
+               // qDebug()<<cur_line->lineNum;
                 break;
             case LetStmt:
             {
             handleLet(cur_line->lineNum);
-            qDebug()<<cur_line->lineNum;
+          //  qDebug()<<cur_line->lineNum;
             break;
             }
             case PrintStmt:
             {
             handlePrint(cur_line->lineNum);
-            qDebug()<<cur_line->lineNum;
+           // qDebug()<<cur_line->lineNum;
             break;
 
          }
