@@ -269,14 +269,24 @@ exp_node* exp::get_exp(QList<QString>oplist){
 }
 //输入一个除了行号外的string
 exp::exp(QString str){
-
+    qDebug()<<"yes";
     QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
+    qDebug()<<oplist;
   //  qDebug()<<oplist;
     if(oplist.front()=="LET"||oplist.front()=="PRINT"){
        if(oplist.front()=="LET") tree_kind=LETexp;
        else tree_kind=PRINTexp;
 
        oplist.pop_front();//弹出语句类型
+
+       if(tree_kind==LETexp){
+           if(oplist.isEmpty()) throw Error("请输入表达式");
+           bool isnum;
+           oplist.front().toInt(&isnum);
+           if(isnum) throw Error("请勿给数值常量赋值");
+          // qDebug()<<"yes";
+
+       }
        root=get_exp(oplist);//建立表达式树
        if(oplist.size()==1) {
            bool ok;

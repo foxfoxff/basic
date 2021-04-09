@@ -14,7 +14,6 @@ SOURCES += \
     exp.cpp \
     main.cpp \
     mainwindow.cpp \
-    parser.cpp \
     program.cpp \
     statement.cpp
 
@@ -23,10 +22,8 @@ HEADERS += \
     evalstate.h \
     exp.h \
     mainwindow.h \
-    parser.h \
     program.h \
-    statement.h \
-    tokenizer.h
+    statement.h
 
 FORMS += \
     mainwindow.ui

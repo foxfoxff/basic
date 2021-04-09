@@ -145,6 +145,7 @@ void MainWindow::on_lineEdit_returnPressed()
             if(a.length()<2) throw Error("请输入值");
             //qDebug()<<tmp;
             handleinput(tmp.toInt());
+            ui->lineEdit->clear();
 
             return;
         }
@@ -319,11 +320,11 @@ statement* MainWindow::run_code(statement *cur_line){
 
              case IuputStmt:
                {
-                if(cur_line->parts.length()<=2) throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");
-                vals->need_input.push_back(cur_line->parts[2]);
-                ui->lineEdit->setText("? ");
-                inputline.push_back(cur_line);
-                return cur_line;
+                    if(cur_line->parts.length()<=2) throw Error("第"+QString::number(cur_line->lineNum)+"行语法错误");
+                    vals->need_input.push_back(cur_line->parts[2]);
+                    ui->lineEdit->setText("? ");
+                    inputline.push_back(cur_line);
+                    return cur_line;
                 }
 
               case GotoStmt:{

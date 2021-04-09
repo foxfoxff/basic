@@ -24,6 +24,10 @@ void program::clear(){
 
 //判断插入还是执行操作
 state_t program::handleNew(statement *newline){
+    if(newline->kind==DelStmt){
+        auto p=exp_map.find(newline->lineNum);
+        if(p==exp_map.end()) throw Error("该行不存在");
+    }
 
     if(newline->kind==CmdStmt){
         return CmdStmt;
