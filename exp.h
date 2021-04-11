@@ -2,7 +2,6 @@
 #define EXP_H
 #include<QString>
 #include<QList>
-#include"tokenizer.h"
 #include<QStack>
 #include<error.h>
 
