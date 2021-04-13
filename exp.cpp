@@ -268,95 +268,129 @@ exp_node* exp::get_exp(QList<QString>oplist){
    throw Error("表达式格式错误");//可根据这里报错
 }
 //输入一个除了行号外的string
-exp::exp(QString str){
-    qDebug()<<"yes";
-    QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
-    qDebug()<<oplist;
-  //  qDebug()<<oplist;
-    if(oplist.front()=="LET"||oplist.front()=="PRINT"){
-       if(oplist.front()=="LET") tree_kind=LETexp;
-       else tree_kind=PRINTexp;
+exp::exp(QString str,bool flag){
+    try {
 
-       oplist.pop_front();//弹出语句类型
+         QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
 
-       if(tree_kind==LETexp){
-           if(oplist.isEmpty()) throw Error("请输入表达式");
-           bool isnum;
-           oplist.front().toInt(&isnum);
-           if(isnum) throw Error("请勿给数值常量赋值");
-          // qDebug()<<"yes";
+       //  qDebug()<<oplist;
+         if(oplist.front()=="LET"||oplist.front()=="PRINT"){
+            if(oplist.front()=="LET") tree_kind=LETexp;
+            else tree_kind=PRINTexp;
 
-       }
-       root=get_exp(oplist);//建立表达式树
-       if(oplist.size()==1) {
-           bool ok;
-           oplist.front().toInt(&ok);
-           if(ok)//是常数
-               root->kind=CONSTANT;
-           else root->kind=VARIANT;
+            oplist.pop_front();//弹出语句类型
+
+            if(tree_kind==LETexp){
+             //  qDebug()<<"yes";
+                 if(oplist.isEmpty()) throw Error("请输入表达式");
+                 if(oplist.size()<3) throw Error("error");
+
+                bool isnum;
+                oplist.front().toInt(&isnum);
+                if(isnum) throw Error("请勿给数值常量赋值");
+
+              //  qDebug()<<oplist;
+
+            }
+            root=get_exp(oplist);//建立表达式树
+            if(oplist.size()==1) {
+                bool ok;
+                oplist.front().toInt(&ok);
+                if(ok)//是常数
+                    root->kind=CONSTANT;
+                else root->kind=VARIANT;
 
 
-       }
+            }
+
+         }
+         else if(oplist.front()=="GOTO"){
+             oplist.pop_front();
+             QString tmp=oplist.front();
+             oplist.pop_front();
+             if(oplist.isEmpty()){
+                 exp_node *newnode=new exp_node(tmp);
+                 newnode->kind=CONSTANT;
+                 root=new exp_node("GOTO",newnode);
+                 root->kind=DEFINE;
+             }
+             tree_kind=GOTOexp;
+         }
+         else if(oplist.front()=="INPUT"){
+             oplist.pop_front();
+             bool isnum;
+             oplist.front().toInt(&isnum);
+             if(isnum) throw Error("请勿给数值常量赋值");
+             QString tmp=oplist.front();
+             oplist.pop_front();
+             if(oplist.isEmpty()){
+                 exp_node *newnode=new exp_node(tmp);
+                 newnode->kind=CONSTANT;
+                 root=new exp_node("INPUT",newnode);
+                 root->kind=DEFINE;
+             }
+             tree_kind=Inputexp;
+         }
+         else if (oplist.front()=="IF") {
+             oplist.pop_front();
+             QList<QString> exp1,exp2;
+             exp_node *left,*right;
+             exp_node *oprand,*then;
+             QString tmp;
+             while(!oplist.isEmpty()&&oplist.front()!="<"&&oplist.front()!=">"&&oplist.front()!="="){
+                 tmp=oplist.front();
+                 oplist.pop_front();
+                 exp1.push_back(tmp);
+             }
+                 left=get_exp(exp1);
+             //截取比较的符号是什么
+             if(!oplist.isEmpty()){
+                 oprand=new exp_node(oplist.front());
+                 oprand->kind=OPRAND;
+                 oplist.pop_front();
+             }
+             while(!oplist.isEmpty()&&oplist.front()!="THEN"){
+                 tmp=oplist.front();
+                 oplist.pop_front();
+                 exp2.push_back(tmp);
+             }
+                 right=get_exp(exp2);
+             if(oplist.front()=="THEN"){
+                 oplist.pop_front();
+             }
+             tmp=oplist.front();
+             then = new exp_node(tmp);
+             then->kind=CONSTANT;
+             root=new exp_node("IF THEN",left,right);
+             root->kind=DEFINE;
+             root->oprand=oprand;
+             root->then=then;
+             tree_kind=IFexp;
+         }
+         else {
+            // qDebug()<<"yes";
+             throw Error("UNKnown type");
+         }
+         return;
+
+    }  catch (Error e) {
+        if(flag) {throw e;}
+        root=new exp_node("Error");
+        tree_kind=Errorexp;
+        return;
 
     }
-    else if(oplist.front()=="GOTO"){
-        oplist.pop_front();
-        QString tmp=oplist.front();
-        oplist.pop_front();
-        if(oplist.isEmpty()){
-            exp_node *newnode=new exp_node(tmp);
-            newnode->kind=CONSTANT;
-            root=new exp_node("GOTO",newnode);
-            root->kind=DEFINE;
-        }
-        tree_kind=GOTOexp;
-    }
-    else if (oplist.front()=="IF") {
-        oplist.pop_front();
-        QList<QString> exp1,exp2;
-        exp_node *left,*right;
-        exp_node *oprand,*then;
-        QString tmp;
-        while(!oplist.isEmpty()&&oplist.front()!="<"&&oplist.front()!=">"&&oplist.front()!="="){
-            tmp=oplist.front();
-            oplist.pop_front();
-            exp1.push_back(tmp);
-        }
-            left=get_exp(exp1);
-        //截取比较的符号是什么
-        if(!oplist.isEmpty()){
-            oprand=new exp_node(oplist.front());
-            oprand->kind=OPRAND;
-            oplist.pop_front();
-        }
-        while(!oplist.isEmpty()&&oplist.front()!="THEN"){
-            tmp=oplist.front();
-            oplist.pop_front();
-            exp2.push_back(tmp);
-        }
-            right=get_exp(exp2);
-        if(oplist.front()=="THEN"){
-            oplist.pop_front();
-        }
-        tmp=oplist.front();
-        then = new exp_node(tmp);
-        then->kind=CONSTANT;
-        root=new exp_node("IF THEN",left,right);
-        root->kind=DEFINE;
-        root->oprand=oprand;
-        root->then=then;
-        tree_kind=IFexp;
-    }
-     QMap<QString,int> all;
-    // qDebug()<<"before pre";
+
 
 }
+
+
 int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
     if(tmp->kind==CONSTANT) return tmp->value.toInt();
     if(tmp->kind==VARIANT) {
        // qDebug()<<all[tmp->value];
         if(all.find(tmp->value)==all.end())//变量为定义
-            throw Error("Variant "+tmp->value+" undifined");
+            throw Error("Variable "+tmp->value+" undifined");
         return all[tmp->value];
     }
     if(tmp->kind==DEFINE) throw Error("表达式树结构错误");
@@ -396,7 +430,6 @@ int exp::calculate( QMap<QString,int> all){
     }
     case GOTOexp:
         throw Error("内部格式错误");
-
     }
 }
 

@@ -1,0 +1,11 @@
+
+*.exe
+new/miniBasic/build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/debug/error.o
+*.o
+build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/.qmake.stash
+build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/debug/moc_mainwindow.cpp
+build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/debug/moc_predefs.h
+build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/Makefile
+build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/Makefile.Debug
+build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/Makefile.Release
+build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/ui_mainwindow.h

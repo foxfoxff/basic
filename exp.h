@@ -6,7 +6,7 @@
 #include<error.h>
 
 enum exp_t{CONSTANT,OPRAND,VARIANT,DEFINE};
-enum exp_kind{LETexp,IFexp,GOTOexp,PRINTexp};
+enum exp_kind{LETexp,IFexp,GOTOexp,PRINTexp,Errorexp,Inputexp};
 struct exp_node{
     exp_t kind;
     QString value;
@@ -34,7 +34,7 @@ class exp
 
 public:
     exp();
-    exp(QString str);
+    exp(QString str,bool a=false);
     int isop(QString);
     static QList<QString>get_token(QString str);
     static QList<QString> tokenizer(QString str);

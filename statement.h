@@ -4,7 +4,7 @@
 #include<QStringList>
 #include"error.h"
 //statement kinds
-enum state_t{RemStmt,LetStmt,PrintStmt,IuputStmt,GotoStmt,IfStmt,EndStmt,CmdStmt,DelStmt};
+enum state_t{RemStmt,LetStmt,PrintStmt,IuputStmt,GotoStmt,IfStmt,EndStmt,CmdStmt,DelStmt,Unknown};
 
 class statement
 {
@@ -22,7 +22,7 @@ public:
     statement();
     statement(QString state,statement*n = nullptr);
 
-    void  choose_kind(QString kind);
+    void  choose_kind(QString kind,bool);
 
 
 };

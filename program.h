@@ -24,7 +24,8 @@ private:
     statement *head;
     //存储表达式树的map
     QMap<int,exp*> exp_map;
-
+    QList<int> parse();
+    bool parseline(statement*);
 
 
 
