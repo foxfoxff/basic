@@ -5,7 +5,7 @@
 #include<QStack>
 #include<error.h>
 
-enum exp_t{CONSTANT,OPRAND,VARIANT,DEFINE};
+enum exp_t{CONSTANT,OPRAND,VARIANT,DEFINE,STRING};
 enum exp_kind{LETexp,IFexp,GOTOexp,PRINTexp,Errorexp,Inputexp};
 struct exp_node{
     exp_t kind;
@@ -20,7 +20,6 @@ struct exp_node{
         right=r;
         oprand=nullptr;
         then=nullptr;
-
     }
 };
 struct syn_node{
@@ -44,10 +43,13 @@ public:
     QList<QString> get_syntax();//获得某条语句对应的要展示的语法树
     QList<syn_node> get_pre_order();//获得前序遍历的结果
     void pre_order(QList<syn_node>&t,exp_node*,int level=0);//前序遍历
-
+    bool checkstr(QString str);
+    bool isStr(){ return isstr;}
+    QString  getstring(){return root->right->value;}
 private:
     exp_node *root;
     exp_kind tree_kind;
+    bool isstr;
 
 
 

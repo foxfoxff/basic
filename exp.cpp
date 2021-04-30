@@ -267,13 +267,31 @@ exp_node* exp::get_exp(QList<QString>oplist){
    }
    throw Error("表达式格式错误");//可根据这里报错
 }
+bool exp::checkstr(QString str){
+    int len = str.size();
+    bool flag=true;
+    if(str[0]=='\'')
+        flag=false;
+    if(flag&&str[len-1]!='\"') return false;
+    if(!flag&&str[len-1]!='\'') return false;
+
+    for(int i=1;i<len-1;++i){
+           if(str[i]=='\"'||str[i]=='"'){
+               qDebug()<<i<<str[i];
+               return false;
+           }
+
+    }
+    return true;
+}
+
 //输入一个除了行号外的string
 exp::exp(QString str,bool flag){
     try {
 
          QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
 
-       //  qDebug()<<oplist;
+         qDebug()<<oplist;
          if(oplist.front()=="LET"||oplist.front()=="PRINT"){
             if(oplist.front()=="LET") tree_kind=LETexp;
             else tree_kind=PRINTexp;
@@ -281,17 +299,39 @@ exp::exp(QString str,bool flag){
             oplist.pop_front();//弹出语句类型
 
             if(tree_kind==LETexp){
+                isstr=false;
              //  qDebug()<<"yes";
                  if(oplist.isEmpty()) throw Error("请输入表达式");
                  if(oplist.size()<3) throw Error("error");
-
+                 if(oplist[1]!="=") throw Error("=");
                 bool isnum;
                 oplist.front().toInt(&isnum);
-                if(isnum) throw Error("请勿给数值常量赋值");
-
+                if(isnum) throw Error("请勿给数值常量赋值");                   
               //  qDebug()<<oplist;
+                if(oplist[2][0]=="\'"||oplist[2][0]=="\""){
+                    qDebug()<<"suc";
+                    int i=2;
+                    QString str="";
+                    while(i<oplist.size()){
+                        str=str+oplist[i];
+                        ++i;
+                    }
 
+                    if(!checkstr(str)) throw Error("格式错误");
+                    qDebug()<<str;
+                    exp_node *sleft = new exp_node(oplist[0]);
+                    sleft->kind=VARIANT;
+                    exp_node *srighrt = new exp_node(str);
+                    srighrt->kind=STRING;
+                    root = new exp_node("=",sleft,srighrt);
+                    root->kind=CONSTANT;
+                    isstr=true;
+                  //  qDebug()<<"suc";
+                    return;
+                }
             }
+            //let 或 print 获取字符串
+
             root=get_exp(oplist);//建立表达式树
             if(oplist.size()==1) {
                 bool ok;
@@ -299,10 +339,7 @@ exp::exp(QString str,bool flag){
                 if(ok)//是常数
                     root->kind=CONSTANT;
                 else root->kind=VARIANT;
-
-
             }
-
          }
          else if(oplist.front()=="GOTO"){
              oplist.pop_front();
@@ -417,7 +454,10 @@ int exp::get_node_value(exp_node* tmp,QMap<QString,int> all){
 int exp::calculate( QMap<QString,int> all){
     switch (tree_kind) {
     case LETexp:
+      {
+
         return get_node_value(root->right,all);
+    }
     case PRINTexp:
         return get_node_value(root,all);
     case IFexp:

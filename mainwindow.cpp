@@ -127,6 +127,7 @@ void MainWindow::clear(){
     ui->textBrowser->clear();
     ui->brwoser->clear();
     ui->result->clear();
+    ui->textBrowser_2->clear();
     prolist->clear();
     vals->clear();
     inputline.clear();
@@ -165,9 +166,9 @@ void MainWindow::on_lineEdit_returnPressed()
 
             if(newline->parts[0]=="RUN"){
                     prolist->parse();
-                   // qDebug()<<"parse";
+
                      set_syntax();
-                     //qDebug()<<"syntax";
+
                     run_code(prolist->head);
             }//run_code();
             else if(newline->parts[0]=="HELP")
@@ -262,15 +263,28 @@ void MainWindow::on_pushButton_3_clicked()
 }
 //处理LET
 void MainWindow::handleLet(int linenum){
+  // qDebug()<<"here";
     exp* tmp=prolist->exp_map[linenum];
    // add_syntax(tmp,linenum);
     if(tmp->tree_kind==Errorexp) throw Error(" ERROR");
-    int val=prolist->exp_map[linenum]->calculate(vals->all);
-    if(ifexist(tmp->root->left->value)) {
+    if(tmp->isStr()) {
 
-        set_var(tmp->root->left->value,val);
+        QString val = prolist->exp_map[linenum]->getstring();
+        if(ifexist(tmp->root->left->value)){
+            set_str(tmp->root->left->value,val);
+        }
+        else add_str(tmp->root->left->value,val);
+
     }
-    else add_var(tmp->root->left->value,val);
+   else{
+        int val=prolist->exp_map[linenum]->calculate(vals->all);
+        if(ifexist(tmp->root->left->value)) {
+
+            set_var(tmp->root->left->value,val);
+        }
+        else add_var(tmp->root->left->value,val);
+
+    }
 
 }
 
@@ -413,7 +427,9 @@ void MainWindow::show_help(){
 void MainWindow:: add_var(QString name,int val){
     vals->add(name,val);
 }
-
+void MainWindow:: add_str(QString name,QString val){
+    vals->add_str(name,val);
+}
 bool MainWindow:: ifexist(QString name){
     return vals->exist(name);
 }
@@ -431,4 +447,14 @@ void MainWindow::on_pushButton_2_clicked()
     prolist->parse();
      set_syntax();
     run_code(prolist->head);
+    for(auto a=vals->all.begin();a!=vals->all.end();++a){
+        qDebug()<<a.value();
+         ui->textBrowser_2->append(a.key()+": "+QString::number(a.value()));
+    }
+
+}
+
+void MainWindow::on_textBrowser_2_textChanged()
+{
+
 }

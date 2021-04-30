@@ -119,7 +119,6 @@ bool program::parseline(statement* newline){
     }
 
 
-
 }
 
 QList<int> program::parse(){

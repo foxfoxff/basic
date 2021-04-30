@@ -84,7 +84,7 @@
      <rect>
       <x>20</x>
       <y>420</y>
-      <width>671</width>
+      <width>331</width>
       <height>361</height>
      </rect>
     </property>
@@ -161,6 +161,29 @@
      <string>命令行输入窗口</string>
     </property>
    </widget>
+   <widget class="QTextBrowser" name="textBrowser_2">
+    <property name="geometry">
+     <rect>
+      <x>365</x>
+      <y>421</y>
+      <width>321</width>
+      <height>361</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>390</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>当前变量</string>
+    </property>
+   </widget>
    <zorder>lineEdit</zorder>
    <zorder>label</zorder>
    <zorder>label_2</zorder>
@@ -169,6 +192,8 @@
    <zorder>horizontalLayoutWidget_2</zorder>
    <zorder>label_3</zorder>
    <zorder>label_4</zorder>
+   <zorder>label_5</zorder>
+   <zorder>textBrowser_2</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
