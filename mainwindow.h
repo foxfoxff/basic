@@ -28,6 +28,7 @@ public:
     void add_var(QString name,int val);
     void add_str(QString name,QString val);
     bool ifexist(QString name);
+    bool ifexist_str(QString name);
     void set_input();
     void handleinput(int);
     void handleLet(int linenum);

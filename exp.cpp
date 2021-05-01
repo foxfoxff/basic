@@ -268,6 +268,7 @@ exp_node* exp::get_exp(QList<QString>oplist){
    throw Error("表达式格式错误");//可根据这里报错
 }
 bool exp::checkstr(QString str){
+    qDebug()<<"CHECK:"<<str;
     int len = str.size();
     bool flag=true;
     if(str[0]=='\'')
@@ -309,19 +310,31 @@ exp::exp(QString str,bool flag){
                 if(isnum) throw Error("请勿给数值常量赋值");                   
               //  qDebug()<<oplist;
                 if(oplist[2][0]=="\'"||oplist[2][0]=="\""){
-                    qDebug()<<"suc";
+                    //qDebug()<<"suc";
                     int i=2;
-                    QString str="";
-                    while(i<oplist.size()){
-                        str=str+oplist[i];
-                        ++i;
-                    }
+                    QString new_str="";
+                    int len=str.size();
+                    qDebug()<<len;
+                    bool contain_str=false;
+                    int index;
+                    int kind =0;//0--' ,1--"
+                    for(int i=0;i<len;++i){
+                         if(str[i]=='\"'||str[i]=='\''){
+                             index=i;
+                             //qDebug()<<i;
+                             kind=(str[i]=='\'')?0:1;
+                             break;
 
-                    if(!checkstr(str)) throw Error("格式错误");
-                    qDebug()<<str;
+                            }
+                    }
+                    new_str=str.mid(index);
+
+
+                    if(!checkstr(new_str)) throw Error("格式错误");
+                   // qDebug()<<new_str;
                     exp_node *sleft = new exp_node(oplist[0]);
                     sleft->kind=VARIANT;
-                    exp_node *srighrt = new exp_node(str);
+                    exp_node *srighrt = new exp_node(new_str);
                     srighrt->kind=STRING;
                     root = new exp_node("=",sleft,srighrt);
                     root->kind=CONSTANT;

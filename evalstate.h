@@ -19,6 +19,11 @@ public:
         else return true;
 
     }
+    bool exist_str(QString name){
+        auto q=all_str.find(name);
+        if(q==all_str.end()) return false;
+        else return true;
+    }
 private:
     int num;
     QMap<QString,int> all;

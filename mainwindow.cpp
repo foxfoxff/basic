@@ -170,6 +170,13 @@ void MainWindow::on_lineEdit_returnPressed()
                      set_syntax();
 
                     run_code(prolist->head);
+                    for(auto a=vals->all.begin();a!=vals->all.end();++a){
+                        qDebug()<<a.value();
+                         ui->textBrowser_2->append(a.key()+": INT ="+QString::number(a.value()));
+                    }
+                    for(auto a=vals->all_str.begin();a!=vals->all_str.end();++a){
+                        ui->textBrowser_2->append(a.key()+": STR ="+a.value());
+                    }
             }//run_code();
             else if(newline->parts[0]=="HELP")
             {ui->lineEdit->clear();show_help();}//
@@ -270,7 +277,7 @@ void MainWindow::handleLet(int linenum){
     if(tmp->isStr()) {
 
         QString val = prolist->exp_map[linenum]->getstring();
-        if(ifexist(tmp->root->left->value)){
+        if(ifexist_str(tmp->root->left->value)){
             set_str(tmp->root->left->value,val);
         }
         else add_str(tmp->root->left->value,val);
@@ -433,6 +440,9 @@ void MainWindow:: add_str(QString name,QString val){
 bool MainWindow:: ifexist(QString name){
     return vals->exist(name);
 }
+bool MainWindow:: ifexist_str(QString name){
+    return vals->exist_str(name);
+}
 
 void MainWindow::on_pushButton_clicked()
 {
@@ -449,7 +459,10 @@ void MainWindow::on_pushButton_2_clicked()
     run_code(prolist->head);
     for(auto a=vals->all.begin();a!=vals->all.end();++a){
         qDebug()<<a.value();
-         ui->textBrowser_2->append(a.key()+": "+QString::number(a.value()));
+         ui->textBrowser_2->append(a.key()+": INT ="+QString::number(a.value()));
+    }
+    for(auto a=vals->all_str.begin();a!=vals->all_str.end();++a){
+        ui->textBrowser_2->append(a.key()+": STR ="+a.value());
     }
 
 }
