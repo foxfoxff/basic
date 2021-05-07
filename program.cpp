@@ -113,8 +113,10 @@ bool program::parseline(statement* newline){
          exp* new_exp= new exp(noNum);
        //  qDebug()<<noNum;
          exp_map.insert(newline->lineNum,new_exp);
+         if(new_exp->tree_kind==Errorexp) return false;
          return true;
     }  catch (Error) {
+
         return false;
     }
 
@@ -124,11 +126,15 @@ bool program::parseline(statement* newline){
 QList<int> program::parse(){
     statement *cur_line=head->next;
     QList<int> errnos;
+    int cur_pos=0;
     while(cur_line){
        // qDebug()<<"parse"+QString::number(cur_line->lineNum);
+        cur_pos+=cur_line->code.size();
         if(!parseline(cur_line))
-            errnos.push_back(cur_line->lineNum);
+            errnos.push_back(cur_pos);
+
           cur_line=cur_line->next;
+
     }
     return errnos;
 }

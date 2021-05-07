@@ -114,6 +114,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButton_4">
+       <property name="text">
+        <string>调试/单步(Debug/Step)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton">
        <property name="text">
         <string>清空代码(CLEAR)</string>

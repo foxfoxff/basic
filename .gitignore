@@ -9,3 +9,4 @@ build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/Makefile
 build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/Makefile.Debug
 build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/Makefile.Release
 build-miniBasic-Desktop_Qt_5_15_0_MinGW_64_bit-Debug/ui_mainwindow.h
+*.TXT

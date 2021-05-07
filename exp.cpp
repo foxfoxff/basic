@@ -1,6 +1,7 @@
 #include "exp.h"
 #include<QDebug>
 #include<cmath>
+
 exp::exp()
 {
 
@@ -122,6 +123,102 @@ QList<QString> exp::get_token(QString str){
     }
   //  qDebug()<<"提取出的tokens:"<<tokens;
     return tokens;
+}
+
+QStringList exp::get_printf_string(QString str){
+
+   bool big;// ' 还是 "
+   bool start=false; //是否开始读入字符串
+   bool kind; //是否有格式化输出
+   int begin=0;
+   int cur_p=0;
+   int end=str.length();
+   if(str[0]=='\'') big=0;
+   else if(str[0]=='\"') big=1;
+   else {
+       QStringList a=str.split(' ',QString::SkipEmptyParts);
+       if(a.size()>1) throw Error("printf Err");
+       return a;
+   }
+   QChar s = big?'\"':'\'';
+   QStringList ret;
+   int len = end;
+   int i=0;
+   bool readnum=false;
+   if(str.contains("{}")) kind=true;
+   int replace=0;
+   bool first_end=true;
+   while(first_end&&i<=len-1){
+       if(str[i]==s){
+           if(!start){
+               cur_p++;
+               start=!start;
+               begin=i;
+           }
+           else {
+               start=!start;
+               end=i;
+            ret.push_back(str.mid(begin,end-begin+1));
+               first_end=false;
+           }
+       }
+       if(i+1<len&&str[i]=='{'&&str[i+1]=='}')
+           replace++;
+           ++i;
+   }
+
+   if(kind&&i==len) { //qDebug()<<1;
+       Error("");}
+   if(!kind&&i<len) {// qDebug()<<2;
+       throw Error("");}
+   //读取剩余的其它字符串
+   while (i<=len-1) {
+
+       if(str[i]==s){
+
+           if(!start){
+                qDebug()<<str.mid(end+1,i-end-1).trimmed();
+               if(str.mid(end+1,i-end-1).trimmed()!=",") throw Error("printf");
+               cur_p++;
+               start=!start;
+               begin=i;
+
+           }
+           else{
+
+               start=!start;
+               end=i;
+
+               ret.push_back(str.mid(begin,end-begin+1));
+                replace--;
+           }
+       }
+       if((str[i].isNumber()||str[i].isLetter())&&!start){
+           qDebug()<<"suc";
+           if(!readnum){ //第一次读到数字
+
+               if(str.mid(end+1,i-end-1).trimmed()!=",") throw Error("printf");
+                readnum=true;
+                begin=i;
+
+           }
+
+               if(i+1>len-1||(!str[i+1].isNumber()&&!str[i+1].isLetter())) {
+                   end = i;
+                   qDebug()<<"change end at"<<i;
+                ret.push_back(str.mid(begin,end-begin+1));
+                   readnum=false;
+                   replace--;
+               }
+
+
+       }
+         ++i;
+   }
+
+   if(replace!=0) {   throw Error("printf wrong");}
+
+    return ret;
 }
 exp_node* exp::get_exp(QList<QString>oplist){
 
@@ -292,7 +389,7 @@ exp::exp(QString str,bool flag){
 
          QList<QString> oplist=get_token(str);//将string 转化为多部份的一个string list
 
-         qDebug()<<oplist;
+        // qDebug()<<oplist;
          if(oplist.front()=="LET"||oplist.front()=="PRINT"){
             if(oplist.front()=="LET") tree_kind=LETexp;
             else tree_kind=PRINTexp;
@@ -310,11 +407,9 @@ exp::exp(QString str,bool flag){
                 if(isnum) throw Error("请勿给数值常量赋值");                   
               //  qDebug()<<oplist;
                 if(oplist[2][0]=="\'"||oplist[2][0]=="\""){
-                    //qDebug()<<"suc";
                     int i=2;
                     QString new_str="";
                     int len=str.size();
-                    qDebug()<<len;
                     bool contain_str=false;
                     int index;
                     int kind =0;//0--' ,1--"
@@ -338,7 +433,7 @@ exp::exp(QString str,bool flag){
                     srighrt->kind=STRING;
                     root = new exp_node("=",sleft,srighrt);
                     root->kind=CONSTANT;
-                    isstr=true;
+                    isstr=true;//与字符串相关
                   //  qDebug()<<"suc";
                     return;
                 }
@@ -353,6 +448,26 @@ exp::exp(QString str,bool flag){
                     root->kind=CONSTANT;
                 else root->kind=VARIANT;
             }
+         }
+         else if(oplist.front()=="PRINTF"){
+            if(oplist.size()==1) throw Error("printf");
+            tree_kind=PRINTFexp;
+            QString print_str=str.mid(7);
+            QStringList str_list=get_printf_string(print_str);
+            exp_node *sleft = new exp_node(str_list[0]);
+            sleft->kind=STRING;
+            QString r_str="";
+            int lsize=str_list.size();
+
+            for(int i=1;i<=lsize-1;++i){
+
+                r_str.push_back(str_list[i]+" ");
+           }
+            exp_node *srighrt =(r_str=="")?nullptr:new exp_node(r_str);
+            if(srighrt)srighrt->kind=STRING;
+            root = new exp_node("PRINTF",sleft,srighrt);
+            root->kind=DEFINE;
+            isstr=true;
          }
          else if(oplist.front()=="GOTO"){
              oplist.pop_front();
@@ -379,6 +494,22 @@ exp::exp(QString str,bool flag){
                  root=new exp_node("INPUT",newnode);
                  root->kind=DEFINE;
              }
+             tree_kind=Inputexp;
+         }
+         else if(oplist.front()=="INPUTS"){
+             oplist.pop_front();
+             bool isnum;
+             oplist.front().toInt(&isnum);
+             if(isnum) throw Error("请勿给数值常量赋值");
+             QString tmp=oplist.front();
+             oplist.pop_front();
+             if(oplist.isEmpty()){
+                 exp_node *newnode=new exp_node(tmp);
+                 newnode->kind=CONSTANT;
+                 root=new exp_node("INPUTS",newnode);
+                 root->kind=DEFINE;
+             }
+             isstr=true;
              tree_kind=Inputexp;
          }
          else if (oplist.front()=="IF") {
@@ -424,7 +555,8 @@ exp::exp(QString str,bool flag){
          return;
 
     }  catch (Error e) {
-        if(flag) {throw e;}
+        if(flag) {qDebug()<<e.errname;throw e;}
+        qDebug()<<e.errname;
         root=new exp_node("Error");
         tree_kind=Errorexp;
         return;

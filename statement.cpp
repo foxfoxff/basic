@@ -7,6 +7,7 @@ statement::statement()
 
 //分析语句类型
 void statement::choose_kind(QString part_k,bool hasnum){
+    isstr = false;
     if(hasnum){
         if(part_k=="REM")
             kind=RemStmt;
@@ -14,8 +15,18 @@ void statement::choose_kind(QString part_k,bool hasnum){
             kind=LetStmt;
         else if(part_k=="PRINT")
             kind=PrintStmt;
+        else if(part_k=="PRINTF")
+        {
+            kind=PrintStmt;
+            isstr=true;
+        }
         else if(part_k=="INPUT")
             kind=IuputStmt;
+        else if(part_k=="INPUTS"){
+            kind=IuputStmt;
+            isstr=true;
+
+        }
         else if(part_k=="GOTO")
             kind=GotoStmt;
         else if(part_k=="IF")
@@ -30,8 +41,18 @@ void statement::choose_kind(QString part_k,bool hasnum){
             kind=LetStmt;
         else if(part_k=="PRINT")
             kind=PrintStmt;
+        else if(part_k=="PRINTF")
+        {
+            kind=PrintStmt;
+            isstr=true;
+        }
         else if(part_k=="INPUT")
             kind=IuputStmt;
+        else if(part_k=="INPUTS"){
+            kind=IuputStmt;
+            isstr=true;
+
+        }
         else if(part_k=="RUN"||part_k=="HELP"||part_k=="CLEAR"||part_k=="LOAD") kind=CmdStmt;
         else kind=Unknown;
     }

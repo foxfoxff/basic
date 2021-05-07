@@ -105,22 +105,38 @@ void MainWindow::load(QTextStream &in){
 }
 
 //处理input
-void MainWindow::handleinput(int num){
+void MainWindow::handleinput(QString val){
   // qDebug()<<"queue in handleinput:"<<vals->need_input;
+    bool ok;
+    int num=val.toInt(&ok);
    if(vals->need_input.isEmpty()) throw Error("没有待输入的变量");
    QString var=vals->need_input.front();
    //qDebug()<<var;
    vals->need_input.pop_front();
-   if(ifexist(var)) {
-       //qDebug()<<"y";
-       vals->all[var]=num;
-   }
-   else {  add_var(var,num);}
-   if(!inputline.isEmpty()) {
-       statement *tmp=inputline.front();
-       inputline.pop_front();
-       emit afterinput(tmp);
-   }
+    if(ok){
+        if(ifexist(var)) {
+            //qDebug()<<"y";
+            if(ifexist_str(var)) throw Error("conflict");
+            vals->all[var]=num;
+        }
+        else {  if(ifexist_str(var)) throw Error("conflict"); add_var(var,num);}
+
+    }
+    else {
+
+        if(ifexist_str(var)) {
+            //qDebug()<<"y";
+            if(ifexist(var)) throw Error("conflict");
+            vals->all_str[var]=val;
+        }
+        else {  if(ifexist(var)) throw Error("conflict"); add_str(var,val);}
+
+    }
+    if(!inputline.isEmpty()) {
+        statement *tmp=inputline.front();
+        inputline.pop_front();
+        emit afterinput(tmp);
+    }
 }
 //CLEAR
 void MainWindow::clear(){
@@ -148,9 +164,8 @@ void MainWindow::on_lineEdit_returnPressed()
             if(sym!="?") throw Error("语法错误");
             if(a.length()<2) throw Error("请输入值");
             //qDebug()<<tmp;
-            handleinput(tmp.toInt());
+            handleinput(tmp);
             ui->lineEdit->clear();
-
             return;
         }
 
@@ -165,18 +180,9 @@ void MainWindow::on_lineEdit_returnPressed()
          if(prolist->handleNew(newline)==CmdStmt){
 
             if(newline->parts[0]=="RUN"){
-                    prolist->parse();
+                    ui->pushButton_2->clicked();
+                    return;
 
-                     set_syntax();
-
-                    run_code(prolist->head);
-                    for(auto a=vals->all.begin();a!=vals->all.end();++a){
-                        qDebug()<<a.value();
-                         ui->textBrowser_2->append(a.key()+": INT ="+QString::number(a.value()));
-                    }
-                    for(auto a=vals->all_str.begin();a!=vals->all_str.end();++a){
-                        ui->textBrowser_2->append(a.key()+": STR ="+a.value());
-                    }
             }//run_code();
             else if(newline->parts[0]=="HELP")
             {ui->lineEdit->clear();show_help();}//
@@ -201,31 +207,44 @@ void MainWindow::on_lineEdit_returnPressed()
                    if(!newline->isfistNum){
                        //LET
                         if(newline->kind==LetStmt){
-                       exp *tmp_exp = new exp(newline->code,true);
-                       int val=tmp_exp->calculate(vals->all);
-                       //qDebug()<<"计算成功"<<val;
-                       QList<QString> tokenlist= exp::get_token(newline->code);
-                        //qDebug()<<tokenlist;
-                       if(ifexist(tokenlist[1]))
-                          {
-                            vals->all[tokenlist[1]]=val;
+                        exp *tmp = new exp(newline->code,true);
+                        if(tmp->tree_kind==Errorexp) throw Error(" ERROR");
+                        if(tmp->isStr()) {
+                            if(ifexist(tmp->root->left->value)) throw Error("cf");
 
+                            QString val = tmp->getstring();
+                            if(ifexist_str(tmp->root->left->value)){
+                                set_str(tmp->root->left->value,val);
                             }
-                            else add_var(tokenlist[1],val);
+                            else add_str(tmp->root->left->value,val);
+
+                        }
+                       else{
+                            if(ifexist_str(tmp->root->left->value)) throw Error("cf");
+                            int val=tmp->calculate(vals->all);
+                            if(ifexist(tmp->root->left->value)) {
+
+                                set_var(tmp->root->left->value,val);
+                            }
+                            else add_var(tmp->root->left->value,val);
+
+                        }
+
+
                         }
                         //PRINT
                         if(newline->kind==PrintStmt){
-                           //qDebug()<<"success to enter the function";
+                           qDebug()<<"success to enter the function";
                            // qDebug()<<vals->all["A"];
                             exp *tmp_exp = new exp(newline->code,true);
-                            int val=tmp_exp->calculate(vals->all);
-
-                             ui->result->append(QString::number(val));
+                            Print(tmp_exp);
 
                         }
+
                         //INPUT
                         if(newline->kind==IuputStmt){
                               QList<QString> oplist=exp::get_token(newline->code);
+                              qDebug()<<oplist;
                               if(oplist.length()!=2) throw Error("语法错误");
                               //qDebug()<<newline->parts;
                               bool num;
@@ -294,15 +313,79 @@ void MainWindow::handleLet(int linenum){
     }
 
 }
+void MainWindow::Print(exp *tmp){
+    if(tmp->tree_kind==Errorexp) throw Error(" ERROR");
+   if(!tmp->isStr()){
+       int val=tmp->calculate(vals->all);
+     //  add_syntax(prolist->exp_map[linenum],linenum);
+        ui->result->append(QString::number(val));
+   }
+   else {
+
+       QString l =tmp->root->left->value;
+       if(l[0]!='\"'&&l[0]!='\''){
+           int _i=0,_s=0;
+           _i=ifexist(l);
+           _s=ifexist_str(l);
+           if(_s&&_i) throw Error("conflict");
+           if(_s) ui->result->append(vals->all_str[l]);
+           if(_i) throw Error("conflict");
+           if(!_i&&!_s) throw Error("no SUCH VARIABLE");
+           return;
+       }
+
+
+       int index=0;
+       int cur=0;
+       int len = l.size();
+       QString res="";
+       QStringList rep = tmp->root->right->value.split(' ',QString::SkipEmptyParts);
+       int rep_num=rep.size();
+       while(rep_num){
+           if(l[cur]=='{'&&l[cur+1]=='}'){
+               l=l.mid(0,cur)+l.mid(cur+2,-1);
+               if(rep[index][0]=='\''||rep[index][0]=='\"'){
+                   l.insert(cur,rep[index].mid(1,rep[index].size()-2));
+                   rep_num--;
+                   cur+=(rep[index].size()-2);
+                   index++;
+               }
+               else {
+                   bool ok;
+                   rep[index].toInt(&ok);
+                   if(!ok) {
+                       int a=0,b=0;
+                       a=ifexist(rep[index]);
+                       b=ifexist_str(rep[index]);
+                       if(a&&b) throw Error("conflict");
+                       if(a) rep[index]=QString::number(vals->all[rep[index]]);
+                       if(b) rep[index]=vals->all_str[rep[index]].mid(1,vals->all_str[rep[index]].size()-2);
+                   }
+                   l.insert(cur,rep[index]);
+                   rep_num--;
+                   cur+=(rep[index].size());
+                   index++;
+               }
+
+           }
+           else{
+               cur++;
+           }
+
+       }
+        ui->result->append(l);
+
+
+
+   }
+}
 
 //处理PRINT
 void MainWindow::handlePrint(int linenum){
     exp* tmp=prolist->exp_map[linenum];
    // add_syntax(tmp,linenum);
-    if(tmp->tree_kind==Errorexp) throw Error(" ERROR");
-    int val=prolist->exp_map[linenum]->calculate(vals->all);
-  //  add_syntax(prolist->exp_map[linenum],linenum);
-     ui->result->append(QString::number(val));
+    Print(tmp);
+
 }
 //处理IF
 bool MainWindow::handleIF(int linenum){
@@ -385,6 +468,13 @@ statement* MainWindow::run_code(statement *cur_line){
             }
 
        }
+        for(auto a=vals->all.begin();a!=vals->all.end();++a){
+            qDebug()<<a.value();
+             ui->textBrowser_2->append(a.key()+": INT ="+QString::number(a.value()));
+        }
+        for(auto a=vals->all_str.begin();a!=vals->all_str.end();++a){
+            ui->textBrowser_2->append(a.key()+": STR ="+a.value());
+        }
     }  catch (Error a) {
       //  qDebug()<<a.errname;
         QMessageBox tip(this);
@@ -448,25 +538,39 @@ void MainWindow::on_pushButton_clicked()
 {
     clear();
 }
-
-void MainWindow::on_pushButton_2_clicked()
-{
+void MainWindow::run(){
     ui->brwoser->clear();
     ui->result->clear();
     ui->lineEdit->clear();
-    prolist->parse();
-     set_syntax();
+    QList<int> errpos=prolist->parse();
+    set_syntax();
     run_code(prolist->head);
-    for(auto a=vals->all.begin();a!=vals->all.end();++a){
-        qDebug()<<a.value();
-         ui->textBrowser_2->append(a.key()+": INT ="+QString::number(a.value()));
-    }
-    for(auto a=vals->all_str.begin();a!=vals->all_str.end();++a){
-        ui->textBrowser_2->append(a.key()+": STR ="+a.value());
+    QTextBrowser *code = ui->textBrowser;
+    QTextCursor cursor(code->document());
+    QList<QTextEdit::ExtraSelection> extras;
+    QList<QPair<int, QColor>> highlights;
+    for(int i=0;i<errpos.size();++i){
+        highlights.push_back({errpos[i], QColor(255, 100, 100)});
     }
 
+    qDebug()<<errpos;
+    for (auto &line : highlights) {
+     QTextEdit::ExtraSelection h;
+     h.cursor = cursor;
+     // 下面这些的功能，请大家自行查看文档
+     h.cursor.setPosition(line.first);
+     h.cursor.movePosition(QTextCursor::StartOfLine);
+     h.cursor.movePosition(QTextCursor::EndOfLine);
+     h.format.setProperty(QTextFormat::FullWidthSelection, true);
+     h.format.setBackground(line.second);
+     extras.append(h);
+    }
+    code->setExtraSelections(extras);
 }
-
+void MainWindow::on_pushButton_2_clicked()
+{
+   run();
+}
 void MainWindow::on_textBrowser_2_textChanged()
 {
 

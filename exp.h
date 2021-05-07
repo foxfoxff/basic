@@ -6,7 +6,7 @@
 #include<error.h>
 
 enum exp_t{CONSTANT,OPRAND,VARIANT,DEFINE,STRING};
-enum exp_kind{LETexp,IFexp,GOTOexp,PRINTexp,Errorexp,Inputexp};
+enum exp_kind{LETexp,IFexp,GOTOexp,PRINTexp,Errorexp,Inputexp,PRINTFexp};
 struct exp_node{
     exp_t kind;
     QString value;
@@ -46,6 +46,7 @@ public:
     bool checkstr(QString str);
     bool isStr(){ return isstr;}
     QString  getstring(){return root->right->value;}
+    QStringList get_printf_string(QString str);
 private:
     exp_node *root;
     exp_kind tree_kind;

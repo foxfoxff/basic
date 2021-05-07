@@ -30,7 +30,7 @@ public:
     bool ifexist(QString name);
     bool ifexist_str(QString name);
     void set_input();
-    void handleinput(int);
+    void handleinput(QString);
     void handleLet(int linenum);
     void handlePrint(int linenum);
     void clear();
@@ -40,9 +40,11 @@ public:
     void set_var(QString name,int val){
         vals->all[name]=val;
     }
+    void Print(exp *tmp);
     void set_str(QString name,QString val){
         vals->all_str[name]=val;
     }
+
     QQueue<statement*> inputline;//要执行输入的行
     ~MainWindow();
   signals:
@@ -62,6 +64,7 @@ private:
      int cur_linenum;
      evalstate *vals;
      int inputnum;
+     void run();
 private slots:
 
 

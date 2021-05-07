@@ -18,6 +18,7 @@ private:
     state_t kind;
     bool isfistNum;
     QStringList parts;
+    bool isstr;
 public:
     statement();
     statement(QString state,statement*n = nullptr);
